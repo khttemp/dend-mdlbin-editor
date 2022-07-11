@@ -1214,6 +1214,7 @@ def saveFile(num, listNum, cmdIdx, mode, scriptData = None):
 
 def reloadFile():
     global line
+    global frame
     global byteArr
     global file_path
     errorMsg = "予想外のエラーが出ました。\n電車でDのコミックスクリプトではない、またはファイルが壊れた可能性があります。"
@@ -1224,9 +1225,11 @@ def reloadFile():
             file = open(file_path, "rb")
             line = file.read()
             byteArr = bytearray(line)
+            selectId = v_select.get()
             deleteWidget()
             readFile()
             createWidget()
+            frame.tree.selection_add(int(selectId))
             file.close()
         except Exception as e:
             print(e)
