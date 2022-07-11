@@ -1224,13 +1224,17 @@ def reloadFile():
             v_fileName.set(filename)
             file = open(file_path, "rb")
             line = file.read()
+            file.close()
             byteArr = bytearray(line)
-            selectId = v_select.get()
+            selectId = int(v_select.get())
             deleteWidget()
             readFile()
             createWidget()
-            frame.tree.selection_add(int(selectId))
-            file.close()
+            if selectId - 3 < 0:
+                frame.tree.see(0)
+            else:
+                frame.tree.see(selectId-3)
+            frame.tree.selection_set(selectId)
         except Exception as e:
             print(e)
             mb.showerror(title="エラー", message=errorMsg)
