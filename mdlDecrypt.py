@@ -599,7 +599,7 @@ frame = None
 copyScriptData = None
 
 def readFile():
-    print("="*30)
+    #print("="*30)
     global index
     global line
 
@@ -611,7 +611,7 @@ def readFile():
         imgNameLen = line[index]
         index += 1
         imgName = line[index:index+imgNameLen].decode("shift-jis")
-        print(imgName)
+        #print(imgName)
         index += imgNameLen
         tmp = line[index]
         index += 1
@@ -634,7 +634,7 @@ def readFile():
         smfLen = line[index]
         index += 1
         smfName = line[index:index+smfLen].decode("shift-jis")
-        print(smfName)
+        #print(smfName)
         index += smfLen
 
     wavCnt = line[index]
@@ -643,7 +643,7 @@ def readFile():
         wavLen = line[index]
         index += 1
         wavName = line[index:index+wavLen].decode("shift-jis")
-        print(wavName)
+        #print(wavName)
         index += wavLen
         index += 1
 
@@ -654,16 +654,16 @@ def readFile():
             lightTgaLen = line[index]
             index += 1
             lightTgaName = line[index:index+lightTgaLen].decode("shift-jis")
-            print("tga:", lightTgaName)
+            #print("tga:", lightTgaName)
             index += lightTgaLen
 
         for i in range(2):
             tempF = struct.unpack("<f", line[index:index+4])[0]
-            print("tgaF:",tempF)
+            #print("tgaF:",tempF)
             index += 4
-        print(struct.unpack("<4c", line[index:index+4]))
+        #print(struct.unpack("<4c", line[index:index+4]))
         index += 4
-        print(struct.unpack("<h", line[index:index+2])[0])
+        #print(struct.unpack("<h", line[index:index+2])[0])
         index += 2
 
     readScript()
