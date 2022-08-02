@@ -1284,7 +1284,7 @@ def listNumModifyBtn():
     listNumModifyDialog(root, num, len(scriptDataInfoList))
 
 root = Tk()
-root.title("電車でD モデルバイナリ 改造 1.0.0")
+root.title("電車でD モデルバイナリ 改造 1.0.1")
 root.geometry("960x640")
 
 menubar = Menu(root)
