@@ -588,6 +588,7 @@ cmdList = [
     "SCRIPT_CMD_MAX"
 ]
 
+ver = 0
 index = None
 line = None
 indexInfoList = []
@@ -600,9 +601,11 @@ copyScriptData = None
 
 def readFile():
     #print("="*30)
+    global ver
     global index
     global line
 
+    ver = line[0]
     index = 1
     imgCnt = line[index]
     index += 1
@@ -613,10 +616,11 @@ def readFile():
         imgName = line[index:index+imgNameLen].decode("shift-jis")
         #print(imgName)
         index += imgNameLen
-        tmp = line[index]
-        index += 1
-        if tmp != 0:
-            index += 2
+        if ver == 4:
+            tmp = line[index]
+            index += 1
+            if tmp != 0:
+                index += 2
 
     imgSizeCnt = line[index]
     index += 1
@@ -647,40 +651,106 @@ def readFile():
         index += wavLen
         index += 1
 
-    lightTgaCnt = line[index]
-    index += 1
-    for i in range(lightTgaCnt):
-        for j in range(2):
-            lightTgaLen = line[index]
-            index += 1
-            lightTgaName = line[index:index+lightTgaLen].decode("shift-jis")
-            #print("tga:", lightTgaName)
-            index += lightTgaLen
+    if ver != 1:
+        lightTgaCnt = line[index]
+        index += 1
+        for i in range(lightTgaCnt):
+            for j in range(2):
+                lightTgaLen = line[index]
+                index += 1
+                lightTgaName = line[index:index+lightTgaLen].decode("shift-jis")
+                #print("tga:", lightTgaName)
+                index += lightTgaLen
 
-        for i in range(2):
-            tempF = struct.unpack("<f", line[index:index+4])[0]
-            #print("tgaF:",tempF)
+            for i in range(2):
+                tempF = struct.unpack("<f", line[index:index+4])[0]
+                #print("tgaF:",tempF)
+                index += 4
+            #print(struct.unpack("<4c", line[index:index+4]))
             index += 4
-        #print(struct.unpack("<4c", line[index:index+4]))
-        index += 4
-        #print(struct.unpack("<h", line[index:index+2])[0])
-        index += 2
+            #print(struct.unpack("<h", line[index:index+2])[0])
+            index += 2
 
     readScript()
 
+def nextSection(line, cmdDiffIdx = None):
+    global ver
+    global index
+    global max_param
+
+    scriptDataInfo = []
+    if ver != 1:
+        if line[index] != 0:
+            index += 1
+            index += 5
+        else:
+            index += 1
+    else:
+        index += 6
+        
+    cmdcnt = line[index]
+    index += 1
+    if cmdDiffIdx != None:
+        cmdcnt = cmdDiffIdx
+        
+    for i in range(cmdcnt):
+        scriptData = []
+        idx = struct.unpack("<h", line[index:index+2])[0]
+        index += 2
+        scriptData.append(idx)
+
+        cmdNum = struct.unpack("<h", line[index:index+2])[0]
+        index += 2
+        scriptData.append(cmdNum)
+        
+        paraCnt = line[index]
+        if max_param < paraCnt:
+            max_param = paraCnt
+        index += 1
+        scriptData.append(paraCnt)
+
+        if ver == 4:
+            fileCnt = line[index]
+            index += 1
+        elif ver == 2 and cmdList[cmdNum] in ["MDL_GETINDEX", "SET_LENSFLEAR_MT"]:
+            fileCnt = 1
+        else:
+            fileCnt = 0xFF
+        scriptData.append(fileCnt)
+
+        if fileCnt != 0xFF:
+            paraCnt -= fileCnt
+
+        for j in range(paraCnt):
+            temp = struct.unpack("<f", line[index:index+4])[0]
+            temp = round(temp, 5)
+            index += 4 
+            scriptData.append(temp)
+
+        if fileCnt != 0xFF:
+            for j in range(fileCnt):
+                txtLen = line[index]
+                index += 1
+                temp = line[index:index+txtLen].decode("shift-jis")
+                index += txtLen
+                scriptData.append(temp)
+
+        scriptDataInfo.append(scriptData)
+    return scriptDataInfo
+
 def readScript():
+    global ver
     global index
     global line
     global indexInfoList
     global scriptDataAllInfoList
-    global max_param
 
     indexInfoList = []
     scriptDataAllInfoList = []
 
     allSectionCnt = line[index]
     index += 1
-    
+
     for section in range(allSectionCnt):
         indexInfo = []
         cnt = line[index]
@@ -691,54 +761,9 @@ def readScript():
         scriptDataInfoList = []
         for c in range(cnt):
             indexInfo.append(index)
-            scriptDataInfo = []
-            if line[index] != 0:
-                index += 1
-                index += 5
-            else:
-                index += 1
-                
-            cmdcnt = line[index]
-            index += 1
-            for i in range(cmdcnt):
-                scriptData = []
-                idx = struct.unpack("<h", line[index:index+2])[0]
-                index += 2
-                scriptData.append(idx)
-
-                cmdNum = struct.unpack("<h", line[index:index+2])[0]
-                index += 2
-                scriptData.append(cmdNum)
-                
-                paraCnt = line[index]
-                if max_param < paraCnt:
-                    max_param = paraCnt
-                index += 1
-                scriptData.append(paraCnt)
-
-                fileCnt = line[index]
-                index += 1
-                scriptData.append(fileCnt)
-
-                if fileCnt != 0xFF:
-                    paraCnt -= fileCnt
-
-                for j in range(paraCnt):
-                    temp = struct.unpack("<f", line[index:index+4])[0]
-                    temp = round(temp, 5)
-                    index += 4
-                    scriptData.append(temp)
-
-                if fileCnt != 0xFF:
-                    for j in range(fileCnt):
-                        txtLen = line[index]
-                        index += 1
-                        temp = line[index:index+txtLen].decode("shift-jis")
-                        index += txtLen
-                        scriptData.append(temp)
-                        
-                scriptDataInfo.append(scriptData)
+            scriptDataInfo = nextSection(line)
             scriptDataInfoList.append(scriptDataInfo)
+            
         indexInfoList.append(indexInfo)
         scriptDataAllInfoList.append(scriptDataInfoList)
 ###
@@ -771,9 +796,12 @@ class Scrollbarframe():
         
         if "#" in selectItem["コマンド名"]:
             listNumModifyBtn['state'] = 'normal'
+            editLineBtn['state'] = 'disabled'
+            deleteLineBtn['state'] = 'disabled'
             copyLineBtn['state'] = 'disabled'
         else:
             listNumModifyBtn['state'] = 'disabled'
+            editLineBtn['state'] = 'normal'
         v_select.set(selectItem["番号"])
         
 
@@ -784,12 +812,12 @@ class inputDialog(sd.Dialog):
         self.cmdItem = cmdItem
         if self.cmdItem != None:
             self.mode = "edit"
-            self.infoMsg = "このまま修正してもよろしいですか？"
+            self.info = "このまま修正してもよろしいですか？"
             self.p_cmd = self.cmdItem["コマンド名"]
             self.p_cnt = len(self.cmdItem)-4
         else:
             self.mode = "insert"
-            self.infoMsg = "このまま挿入してもよろしいですか？"
+            self.info = "このまま挿入してもよろしいですか？"
             self.p_cmd = None
             self.p_cnt = None
         super().__init__(master)
@@ -846,11 +874,17 @@ class inputDialog(sd.Dialog):
         self.paramLb = ttk.Label(self.paramFrame)
         self.paramLb.grid(row=0, column=0)
 
+        if ver == 2:
+            self.cmdCb.bind('<<ComboboxSelected>>', lambda e: self.cmdLock())
+            self.cmdLock()
+            
         self.paramCntCb.bind('<<ComboboxSelected>>', lambda e: self.selectParam(self.v_paramCnt.get(), self.paramFrame))
         if self.p_cnt != 0:
             self.selectParam(self.v_paramCnt.get(), self.paramFrame, self.cmdItem)
 
     def selectParam(self, paramCnt, frame, cmdItem=None):
+        global ver
+        
         self.v_paramList = []
         children = frame.winfo_children()
         for child in children:
@@ -871,6 +905,16 @@ class inputDialog(sd.Dialog):
             for i in range(len(self.v_paramList)):
                 self.v_paramList[i].set(cmdItem["param{0}".format(i+1)])
 
+    def cmdLock(self):
+        global ver
+        if ver == 2:
+            if self.v_cmd.get() in ["MDL_GETINDEX", "SET_LENSFLEAR_MT"]:
+                self.paramCntCb["state"] = "disabled"
+                self.paramCntCb.current(2)
+                self.selectParam(self.v_paramCnt.get(), self.paramFrame)
+            else:
+                self.paramCntCb["state"] = "normal"
+
     def buttonbox(self):
         box = Frame(self, padx=5, pady=5)
         self.okBtn = Button(box, text="OK", width=10, command=self.okPress)
@@ -880,16 +924,30 @@ class inputDialog(sd.Dialog):
         box.pack()
 
     def okPress(self):
+        global ver
         editParamList = []
         textParamList = []
         paramIdx = 0
         floatFlag = True
+        errorFlag = False
         for var in self.v_paramList:
             num = 0
             if floatFlag:
                 try:
                     num = float(var.get())
                 except:
+                    floatFlag = False
+                    if ver != 4:
+                        if ver != 2:
+                            errorFlag = True
+                        elif self.v_cmd.get() not in ["MDL_GETINDEX", "SET_LENSFLEAR_MT"]:
+                            errorFlag = True
+                        else:
+                            if paramIdx != 1:
+                                errorFlag = True
+
+            if ver == 2:
+                if self.v_cmd.get() in ["MDL_GETINDEX", "SET_LENSFLEAR_MT"] and paramIdx == 1:
                     floatFlag = False
 
             if floatFlag:
@@ -899,15 +957,20 @@ class inputDialog(sd.Dialog):
                 textParamList.append(paramIdx)
             paramIdx += 1
 
-        msg = ""    
+        if errorFlag:
+            mb.showerror(title="エラー", message="不正な値があります")
+            return
+
+        msg = ""
+        infoMsg = self.info
         for param in textParamList:
             msg += "param{0}\n".format(param+1)
 
         if len(textParamList) > 0:
             msg += "※上記のparamは文字として保存されます\n\n"
-            self.infoMsg = msg + self.infoMsg
+            infoMsg = msg + self.info
 
-        result = mb.askokcancel(title="確認", message=self.infoMsg, parent=self)
+        result = mb.askokcancel(title="確認", message=infoMsg, parent=self)
         if result:
             self.ok()
             scriptData = []
@@ -922,13 +985,13 @@ class inputDialog(sd.Dialog):
             for i in range(self.v_paramCnt.get()):
                 scriptData.append(editParamList[i])
                     
-            (num, listNum, cmdIdx) = searchNums(self.num)
+            (num, listNum, cmdDiffIdx) = searchNums(self.num)
 
             if self.mode == "insert":
                 if self.v_position.get() == "後":
-                    cmdIdx += 1
+                    cmdDiffIdx += 1
 
-            saveFile(num, listNum, cmdIdx, self.mode, scriptData)
+            saveFile(num, listNum, cmdDiffIdx, self.mode, scriptData)
 
 class pasteDialog(sd.Dialog):
     def __init__(self, master, num):
@@ -949,12 +1012,12 @@ class pasteDialog(sd.Dialog):
         box.pack()
     def frontInsert(self):
         self.ok()
-        (num, listNum, cmdIdx) = searchNums(self.num)
-        saveFile(num, listNum, cmdIdx, "insert", copyScriptData)
+        (num, listNum, cmdDiffIdx) = searchNums(self.num)
+        saveFile(num, listNum, cmdDiffIdx, "insert", copyScriptData)
     def backInsert(self):
         self.ok()
-        (num, listNum, cmdIdx) = searchNums(self.num)
-        saveFile(num, listNum, cmdIdx+1, "insert", copyScriptData)
+        (num, listNum, cmdDiffIdx) = searchNums(self.num)
+        saveFile(num, listNum, cmdDiffIdx+1, "insert", copyScriptData)
 
 class listNumModifyDialog(sd.Dialog):
     def __init__(self, master, num, curVal):
@@ -1040,8 +1103,8 @@ def deleteLine():
     warnMsg = "選択した行を削除します。\nそれでもよろしいですか？"
     result = mb.askokcancel(title="警告", message=warnMsg, icon="warning")
     if result:
-        (num, listNum, cmdIdx) = searchNums(selectId)
-        saveFile(num, listNum, cmdIdx, "delete")
+        (num, listNum, cmdDiffIdx) = searchNums(selectId)
+        saveFile(num, listNum, cmdDiffIdx, "delete")
 
 def copyLine():
     global frame
@@ -1072,7 +1135,9 @@ def pasteLine():
     num = int(selectItem["番号"])
     pasteDialog(root, num)
         
-def saveFile(num, listNum, cmdIdx, mode, scriptData = None):
+def saveFile(num, listNum, cmdDiffIdx, mode, scriptData = None):
+    global ver
+    global index
     global byteArr
     global file_path
     global indexInfoList
@@ -1088,60 +1153,13 @@ def saveFile(num, listNum, cmdIdx, mode, scriptData = None):
         for i in range(listcnt):
             if i == scriptData:
                 break
-            
-            if byteArr[index] != 0:
-                index += 6
-            else:
-                index += 1
 
-            cmdcnt = byteArr[index]
-            index += 1
-
-            for j in range(cmdcnt):
-                index += 2
-                index += 2
-                paramCnt = byteArr[index]
-                index += 1
-                filecnt = byteArr[index]
-                index += 1
-                if filecnt != 0xFF:
-                    paramCnt -= filecnt
-                for j in range(paramCnt):
-                    index += 4
-                    
-                if filecnt != 0xFF:
-                    for j in range(filecnt):
-                        txtLen = byteArr[index]
-                        index += 1
-                        index += txtLen
+            nextSection(byteArr)
 
         newByteArr = copy.deepcopy(byteArr[0:index])
         if scriptData < listcnt:
-            if byteArr[index] != 0:
-                index += 6
-            else:
-                index += 1
-
-            cmdcnt = byteArr[index]
-            index += 1
-
-            for j in range(cmdcnt):
-                index += 2
-                index += 2
-                paramCnt = byteArr[index]
-                index += 1
-                filecnt = byteArr[index]
-                index += 1
-                if filecnt != 0xFF:
-                    paramCnt -= filecnt
-                for j in range(paramCnt):
-                    index += 4
-                    
-                if filecnt != 0xFF:
-                    for j in range(filecnt):
-                        txtLen = byteArr[index]
-                        index += 1
-                        index += txtLen
+            for i in range(listcnt-scriptData):
+                nextSection(byteArr)
         else:
             for i in range(scriptData-listcnt):
                 newByteArr.extend([1, 0, 0, 0, 1, 0])
@@ -1149,14 +1167,17 @@ def saveFile(num, listNum, cmdIdx, mode, scriptData = None):
 
         newByteArr.extend(byteArr[index:])
     else:
-        if byteArr[index] != 0:
-            index += 6
-        else:
-            index += 1
-
         cntIdx = index
-        index += 1
+        if ver != 1:
+            if byteArr[cntIdx] != 0:
+                cntIdx += 6
+            else:
+                cntIdx += 1
+        else:
+            cntIdx += 6
 
+        startIdx = index
+        
         if mode == "insert":
             cnt = byteArr[cntIdx]
             byteArr[cntIdx] = (cnt + 1)
@@ -1164,43 +1185,8 @@ def saveFile(num, listNum, cmdIdx, mode, scriptData = None):
             cnt = byteArr[cntIdx]
             byteArr[cntIdx] = (cnt - 1)
 
-        for i in range(cmdIdx):
-            index += 2
-            index += 2
-            paramCnt = byteArr[index]
-            index += 1
-            filecnt = byteArr[index]
-            index += 1
-            if filecnt != 0xFF:
-                paramCnt -= filecnt
-            for j in range(paramCnt):
-                index += 4
-                
-            if filecnt != 0xFF:
-                for j in range(filecnt):
-                    txtLen = byteArr[index]
-                    index += 1
-                    index += txtLen
-        
+        nextSection(byteArr, cmdDiffIdx)
         newByteArr = copy.deepcopy(byteArr[0:index])
-
-        if mode == "edit" or mode == "delete":
-            index += 2
-            index += 2
-            paramCnt = byteArr[index]
-            index += 1
-            filecnt = byteArr[index]
-            index += 1
-            if filecnt != 0xFF:
-                paramCnt -= filecnt
-            for j in range(paramCnt):
-                index += 4
-                
-            if filecnt != 0xFF:
-                for j in range(filecnt):
-                    txtLen = byteArr[index]
-                    index += 1
-                    index += txtLen
 
         if mode == "edit" or mode == "insert":
             bIdx = struct.pack("<h", scriptData[0])
@@ -1212,7 +1198,8 @@ def saveFile(num, listNum, cmdIdx, mode, scriptData = None):
                 newByteArr.append(n)
 
             newByteArr.append(scriptData[2])
-            newByteArr.append(scriptData[3])
+            if ver == 4:
+                newByteArr.append(scriptData[3])
 
             floatFlag = True
             for i in range(scriptData[2]):
@@ -1223,6 +1210,10 @@ def saveFile(num, listNum, cmdIdx, mode, scriptData = None):
                     except:
                         floatFlag = False
 
+                if ver == 2:
+                    if cmdList[scriptData[1]] in ["MDL_GETINDEX", "SET_LENSFLEAR_MT"] and i == 1:
+                        floatFlag = False
+                    
                 if floatFlag:
                     bTemp = struct.pack("<f", temp)
                     for n in bTemp:
@@ -1231,6 +1222,13 @@ def saveFile(num, listNum, cmdIdx, mode, scriptData = None):
                     temp = scriptData[4+i].encode("shift-jis")
                     newByteArr.append(len(temp))
                     newByteArr.extend(temp)
+
+        index = startIdx
+        if mode == "edit" or mode == "delete":
+            nextSection(byteArr, cmdDiffIdx+1)
+        elif mode == "insert":
+            nextSection(byteArr, cmdDiffIdx)
+            
         newByteArr.extend(byteArr[index:])
 
     errorMsg = "保存に失敗しました。\nファイルが他のプログラムによって開かれている\nまたは権限問題の可能性があります"
@@ -1284,7 +1282,7 @@ def listNumModifyBtn():
     listNumModifyDialog(root, num, len(scriptDataInfoList))
 
 root = Tk()
-root.title("電車でD モデルバイナリ 改造 1.0.1")
+root.title("電車でD モデルバイナリ 改造 1.0.2")
 root.geometry("960x640")
 
 menubar = Menu(root)
