@@ -709,7 +709,7 @@ def nextSection(line, cmdDiffIdx = None):
         index += 1
         scriptData.append(paraCnt)
 
-        if ver == 4:
+        if ver >= 3:
             fileCnt = line[index]
             index += 1
         elif ver == 2 and cmdList[cmdNum] in ["MDL_GETINDEX", "SET_LENSFLEAR_MT"]:
@@ -937,7 +937,7 @@ class inputDialog(sd.Dialog):
                     num = float(var.get())
                 except:
                     floatFlag = False
-                    if ver != 4:
+                    if ver < 3:
                         if ver != 2:
                             errorFlag = True
                         elif self.v_cmd.get() not in ["MDL_GETINDEX", "SET_LENSFLEAR_MT"]:
@@ -1198,7 +1198,7 @@ def saveFile(num, listNum, cmdDiffIdx, mode, scriptData = None):
                 newByteArr.append(n)
 
             newByteArr.append(scriptData[2])
-            if ver == 4:
+            if ver >= 3:
                 newByteArr.append(scriptData[3])
 
             floatFlag = True
@@ -1282,7 +1282,7 @@ def listNumModifyBtn():
     listNumModifyDialog(root, num, len(scriptDataInfoList))
 
 root = Tk()
-root.title("電車でD モデルバイナリ 改造 1.0.2")
+root.title("電車でD モデルバイナリ 改造 1.0.3")
 root.geometry("960x640")
 
 menubar = Menu(root)
