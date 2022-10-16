@@ -349,9 +349,8 @@ class HeaderDialog(sd.Dialog):
             if len(copyImgList) > 0:
                 for i in range(len(copyImgList)):
                     imgName = copyImgList[i]["imgName"]
-                    imgElse = ",".join(str(n) for n in copyImgList[i]["imgElse"])
                     if self.decryptFile.ver == 4:
-                        copyImgList[i] = "{0:02d}→{1}, [{2}]".format(i, imgName, imgElse)
+                        copyImgList[i] = "{0:02d}→{1}, {2}".format(i, imgName, copyImgList[i]["imgElse"])
                     else:
                         copyImgList[i] = "{0:02d}→{1}".format(i, imgName)
             else:
@@ -363,8 +362,7 @@ class HeaderDialog(sd.Dialog):
             copyImgSizeList = copy.deepcopy(self.imgSizeList)
             if len(copyImgSizeList) > 0:
                 for i in range(len(copyImgSizeList)):
-                    sizeList = ",".join(str(n) for n in copyImgSizeList[i][1])
-                    copyImgSizeList[i] = "{0:02d}→img{1:02d},[{2}]".format(i, copyImgSizeList[i][0], sizeList)
+                    copyImgSizeList[i] = "{0:02d}→img{1:02d}, {2}".format(i, copyImgSizeList[i][0], copyImgSizeList[i][1])
             else:
                 copyImgSizeList = ["(なし)"]
 
@@ -384,7 +382,7 @@ class HeaderDialog(sd.Dialog):
             copyWavList = copy.deepcopy(self.wavList)
             if len(copyWavList) > 0:
                 for i in range(len(copyWavList)):
-                    copyWavList[i] = "{0:02d}→{1}, [{2}]".format(i, copyWavList[i][0], copyWavList[i][1])
+                    copyWavList[i] = "{0:02d}→{1}, {2}".format(i, copyWavList[i][0], copyWavList[i][1])
             else:
                 copyWavList = ["(なし)"]
 
@@ -394,9 +392,7 @@ class HeaderDialog(sd.Dialog):
             copyTgaList = copy.deepcopy(self.tgaList)
             if len(copyTgaList) > 0:
                 for i in range(len(copyTgaList)):
-                    tgaInfo = ",".join(str(n) for n in copyTgaList[i]["tgaInfo"])
-                    tgaElse = ",".join(str(n) for n in copyTgaList[i]["tgaElse"])
-                    copyTgaList[i] = "{0:02d}→[{1}], [{2}]".format(i, tgaInfo, tgaElse)
+                    copyTgaList[i] = "{0:02d}→{1}, {2}".format(i, copyTgaList[i]["tgaInfo"], copyTgaList[i]["tgaElse"])
             else:
                 copyTgaList = ["(なし)"]
 
@@ -597,10 +593,10 @@ class HeaderEditDialog(sd.Dialog):
             self.imgIndex_heightLb.grid(row=5, column=0)
             
             self.v_imgIndex = IntVar()
-            self.v_imgIndex_x = IntVar()
-            self.v_imgIndex_y = IntVar()
-            self.v_imgIndex_width = IntVar()
-            self.v_imgIndex_height = IntVar()
+            self.v_imgIndex_x = DoubleVar()
+            self.v_imgIndex_y = DoubleVar()
+            self.v_imgIndex_width = DoubleVar()
+            self.v_imgIndex_height = DoubleVar()
             self.imgIndexEt = ttk.Entry(master, textvariable=self.v_imgIndex, font=("", 12))
             self.imgIndexEt.grid(row=1, column=1)
             self.imgIndex_xEt = ttk.Entry(master, textvariable=self.v_imgIndex_x, font=("", 12))
@@ -614,10 +610,10 @@ class HeaderEditDialog(sd.Dialog):
 
             if self.mode == "modify":
                 self.v_imgIndex.set(int(self.selectList[self.selectIndexNum][0]))
-                self.v_imgIndex_x.set(int(self.selectList[self.selectIndexNum][1][0]))
-                self.v_imgIndex_y.set(int(self.selectList[self.selectIndexNum][1][1]))
-                self.v_imgIndex_width.set(int(self.selectList[self.selectIndexNum][1][2]))
-                self.v_imgIndex_height.set(int(self.selectList[self.selectIndexNum][1][3]))
+                self.v_imgIndex_x.set(float(self.selectList[self.selectIndexNum][1][0]))
+                self.v_imgIndex_y.set(float(self.selectList[self.selectIndexNum][1][1]))
+                self.v_imgIndex_width.set(float(self.selectList[self.selectIndexNum][1][2]))
+                self.v_imgIndex_height.set(float(self.selectList[self.selectIndexNum][1][3]))
             else:
                 self.setInsertWidget(master, 6)
         elif self.selectListNum == 2:
@@ -777,10 +773,10 @@ class HeaderEditDialog(sd.Dialog):
                     imgSizeInfo.append(int(self.v_imgIndex.get()))
 
                     imgSize = []
-                    imgSize.append(int(self.v_imgIndex_x.get()))
-                    imgSize.append(int(self.v_imgIndex_y.get()))
-                    imgSize.append(int(self.v_imgIndex_width.get()))
-                    imgSize.append(int(self.v_imgIndex_height.get()))
+                    imgSize.append(float(self.v_imgIndex_x.get()))
+                    imgSize.append(float(self.v_imgIndex_y.get()))
+                    imgSize.append(float(self.v_imgIndex_width.get()))
+                    imgSize.append(float(self.v_imgIndex_height.get()))
                     imgSizeInfo.append(imgSize)
 
                     if self.mode == "modify":
