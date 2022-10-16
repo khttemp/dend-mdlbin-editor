@@ -155,7 +155,7 @@ pyinstaller か py2exe ライブラリをインストールする。 pip でも 
 
 dist フォルダーが作られて、 mdlDecrypt.exe が出力される。
 
-### Virustotal (1.1.0)
+### Virustotal (1.1.1)
 
 ![virustotal](https://github.com/khttemp/dend-mdlbin-editor/blob/main/image/virustotal.png)
 
