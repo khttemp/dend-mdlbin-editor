@@ -310,7 +310,6 @@ class MdlBinDecrypt:
                     cntIdx += 6
 
                 startIdx = self.index
-                
                 if mode == "insert":
                     cnt = self.byteArr[cntIdx]
                     self.byteArr[cntIdx] = (cnt + 1)

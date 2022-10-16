@@ -681,6 +681,7 @@ def createWidget():
 
     index = 0
     num = 0
+    sectionNum = 0
     for scriptDataInfoList in decryptFile.scriptDataAllInfoList:
         listNum = 0
         for scriptDataInfo in scriptDataInfoList:
@@ -689,8 +690,9 @@ def createWidget():
             frame.tree.insert(parent='', index='end', iid=index, values=headerInfo)
             listNum += 1
             index += 1
+            sectionNum = 0
             for scriptData in scriptDataInfo[1:]:
-                data = (index, scriptData[0], cmdList[scriptData[1]], scriptData[3], "{0},{1},{2}".format(num, listNum - 1, index - 1))
+                data = (index, scriptData[0], cmdList[scriptData[1]], scriptData[3], "{0},{1},{2}".format(num, listNum - 1, sectionNum))
                 paramCnt = scriptData[2]
                 paramList = []
                 for i in range(paramCnt):
@@ -698,6 +700,7 @@ def createWidget():
                 data = data + tuple(paramList)
                 frame.tree.insert(parent='', index='end', iid=index ,values=data)
                 index += 1
+                sectionNum += 1
         num += 1
     return index
 
@@ -841,7 +844,7 @@ def numModifyBtn():
         reloadFile()
 
 root = Tk()
-root.title("電車でD モデルバイナリ 改造 1.1.0")
+root.title("電車でD モデルバイナリ 改造 1.1.1")
 root.geometry("960x640")
 
 menubar = Menu(root)
