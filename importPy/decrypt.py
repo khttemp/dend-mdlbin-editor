@@ -317,7 +317,7 @@ class MdlBinDecrypt:
                     cnt = self.byteArr[cntIdx]
                     self.byteArr[cntIdx] = (cnt - 1)
 
-                self.nextSection(cmdDiff)
+                self.nextSection(cmdDiff - 1)
                 newByteArr = self.byteArr[0:self.index]
 
                 if mode == "edit" or mode == "insert":
@@ -354,9 +354,9 @@ class MdlBinDecrypt:
 
                 self.index = startIdx
                 if mode == "edit" or mode == "delete":
-                    self.nextSection(cmdDiff+1)
-                elif mode == "insert":
                     self.nextSection(cmdDiff)
+                elif mode == "insert":
+                    self.nextSection(cmdDiff - 1)
                     
                 newByteArr.extend(self.byteArr[self.index:])
 
