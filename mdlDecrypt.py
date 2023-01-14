@@ -4,14 +4,14 @@ import os
 import copy
 import traceback
 
-from tkinter import *
-from tkinter import filedialog as fd
+import tkinter
 from tkinter import ttk
+from tkinter import filedialog as fd
 from tkinter import messagebox as mb
 
-from importPy.tkinterScrollbarFrameClass import *
-from importPy.tkinterEditClass import *
-from importPy.decrypt import *
+from importPy.tkinterScrollbarFrameClass import ScrollbarFrame
+from importPy.tkinterEditClass import InputDialog, PasteDialog, HeaderDialog, ListNumModifyDialog, ListHeaderModifyDialog, NumModifyDialog
+from importPy.decrypt import MdlBinDecrypt
 
 cmdList = [
     "Tx",
@@ -483,118 +483,13 @@ cmdList = [
     "RAIL_STOP",
     "CHANGE_OUHUKU_LINE",
     "BRIND_ATK",
-    "OPEN_POS_DLG",
-    "PLAY_STAGEBGM_BLOCK",
-    "SET_BTL_POINT",
-    "CAM_TRAIN",
-    "PLAY_SCRIPT_BGM",
-    "CNG_FOR",
-    "SET_RAILBLOCK_CHECKER",
-    "RAIN_SE",
-    "TRAIN_STOP",
-    "KOTEICAM_BLEND",
-    "SCRIPT_RAIN",
-    "LINE_CHANGE",
-    "WAIT_RAIL_MORE_ONLY",
-    "SET_SE_VOL",
-    "CAM_TARGET_TRACK",
-    "DECAL_D37",
-    "DECAL_D39",
-    "DECAL_SMOKE",
-    "RAIL_PRIORITY",
-    "GET_KEY",
-    "SHOW_LIGHT",
-    "SHOW_IN_LIGHT",
-    "FOG_POW",
-    "STORY_WIN",
-    "RAIN_PARTICLE",
-    "D39_FIRE",
-    "SET_CPU_SPEED",
-    "BODY_AUDIO_PLAY",
-    "BODY_AUDIO_STOP",
-    "CNG_FADE_SPRITE",
-    "RAIL_DRIFT_CHK",
-    "INQ_WAIT",
-    "CNG_SCCAM_TRAIN",
-    "STOP_TRAIN_SE",
-    "PLAY_SCRIPT_BGM_TIME",
-    "CNG_BODY_COLOR",
-    "LOAD_TRAIN",
-    "SHOW_BLOCK",
-    "UPDATE_LIGHT_FRARE",
-    "WAIT_RAIL_MORE_GOTO",
-    "CREATE_AURA",
-    "AURA_ALPHA",
-    "SET_LV_JUMP",
-    "CREATE_EFFECT_CAM",
-    "TO_EFFECT_CAM",
-    "EFFECT_CAM_POW",
-    "EFFECT_CAM_COLOR",
-    "EFFECT_CAM_ALPHA",
-    "HIDE_LIGHT",
-    "USE_EFFECT_CAM",
-    "USE_EFFECT_CAM_RGB",
-    "EFFECT_CAM_RGB",
-    "COPY_TRAIN_POS",
-    "COL_SET",
-    "CNG_CPU_TRAIN",
-    "BTN_GOTO",
-    "NO_TIMESCALE_KOMA",
-    "EFFCAM_NOIZE",
-    "EFFCAM_GRI",
-    "EFFCAM_BLOCKNOISE",
-    "CREATE_TQ5000_FLAGMENT",
-    "USE_TQ5000_FLAGMENT",
-    "TQ5000_FLAGPOS",
-    "HUMIKIRI_VOL",
-    "TO_EFFECT_CAM_BODY",
-    "TO_NORM_CAM",
-    "TO_920",
-    "NO_TIMESCALE_FVT",
-    "CNG_TARGET_BODY",
-    "SC_ADD_POINT",
-    "CHK_SC_POINT",
-    "KAISO_TO_DUEL",
-    "SHOW_ST",
-    "ORG_UPDATE",
-    "SET_RAILBLOCK_POS",
-    "SET_LIGHT_OVER",
-    "CREATE_STAFFROLL",
-    "STAFFROLL_START",
-    "WAIT_STAFFROLL",
-    "SC_OUTRUN",
-    "CREATE_TAKMIS",
-    "SET_TAKMIS_POS",
-    "SET_TAKMIS_ALPHA",
-    "FRONT_DOOR",
-    "SET_KOMA_DEPTH",
-    "D37_FIRE",
-    "AMB_HIT_WAIT",
-    "ShowRecord",
-    "FIT_PER",
-    "CREATE_COMIC_PC",
-    "SET_COMIC_PC",
-    "PAUSE_STAGE_BGM",
-    "SET_KAKAPO",
-    "KOMA_KAKAPO",
-    "START_TARBINE",
-    "END_TARBINE",
-    "TARBINE_FTV_START",
-    "TARBINE_FTV_END",
-    "STORY_ENGINE",
-    "RAND_GOTO",
-    "KQ_SOUND",
-    "STORY_GOTO",
-    "PLAY223HONE",
-    "RB26",
-    "PLAYORGSE",
-    "H2300_GOAL",
-    "SCRIPT_CMD_MAX"
+    "OPEN_POS_DLG"
 ]
 
 decryptFile = None
 frame = None
 copyScriptData = None
+
 
 def openFile():
     global decryptFile
@@ -607,31 +502,33 @@ def openFile():
             v_fileName.set(filename)
             del decryptFile
             decryptFile = None
-            
+
             decryptFile = MdlBinDecrypt(file_path, cmdList)
             if not decryptFile.open():
                 decryptFile.printError()
                 mb.showerror(title="エラー", message=errorMsg)
                 return
-            
+
             deleteWidget()
             createWidget()
         except Exception:
             print(traceback.format_exc())
             mb.showerror(title="エラー", message=errorMsg)
 
+
 def deleteWidget():
     global scriptLf
-    
+
     children = scriptLf.winfo_children()
     for child in children:
         child.destroy()
-        
+
     v_select.set("")
     editLineBtn['state'] = 'disabled'
     insertLineBtn['state'] = 'disabled'
     deleteLineBtn['state'] = 'disabled'
     headerFileEditBtn['state'] = 'disabled'
+
 
 def createWidget():
     global decryptFile
@@ -651,30 +548,30 @@ def createWidget():
     col_tuple = ('番号', 'index', 'コマンド名', 'ファイルフラグ', 'セクション')
     paramList = []
     for i in range(decryptFile.max_param):
-        paramList.append("param{0}".format(i+1))
+        paramList.append("param{0}".format(i + 1))
     col_tuple = col_tuple + tuple(paramList)
 
     frame.tree['columns'] = col_tuple
-    
-    frame.tree.column('#0',width=0, stretch=False)
-    frame.tree.column('番号', anchor=CENTER, width=50)
-    frame.tree.column('index', anchor=CENTER, width=50)
-    frame.tree.column('コマンド名',anchor=CENTER, width=130)
-    frame.tree.column('ファイルフラグ',width=20, stretch=False)
+
+    frame.tree.column('#0', width=0, stretch=False)
+    frame.tree.column('番号', anchor=tkinter.CENTER, width=50)
+    frame.tree.column('index', anchor=tkinter.CENTER, width=50)
+    frame.tree.column('コマンド名', anchor=tkinter.CENTER, width=130)
+    frame.tree.column('ファイルフラグ', width=20, stretch=False)
     frame.tree.column('セクション', stretch=False)
     for i in range(decryptFile.max_param):
-        col_name = "param{0}".format(i+1)
-        frame.tree.column(col_name, anchor=CENTER, width=100)
+        col_name = "param{0}".format(i + 1)
+        frame.tree.column(col_name, anchor=tkinter.CENTER, width=100)
 
     displayList = []
 
-    frame.tree.heading('番号', text='番号',anchor=CENTER)
-    frame.tree.heading('index', text='index',anchor=CENTER)
-    frame.tree.heading('コマンド名', text='コマンド名', anchor=CENTER)
+    frame.tree.heading('番号', text='番号', anchor=tkinter.CENTER)
+    frame.tree.heading('index', text='index', anchor=tkinter.CENTER)
+    frame.tree.heading('コマンド名', text='コマンド名', anchor=tkinter.CENTER)
     for i in range(decryptFile.max_param):
-        col_name = "param{0}".format(i+1)
+        col_name = "param{0}".format(i + 1)
         displayList.append(col_name)
-        frame.tree.heading(col_name,text=col_name, anchor=CENTER)
+        frame.tree.heading(col_name, text=col_name, anchor=tkinter.CENTER)
 
     frame.tree["displaycolumns"] = ["番号", "index", "コマンド名"]
     frame.tree["displaycolumns"] += tuple(displayList)
@@ -695,15 +592,16 @@ def createWidget():
                 paramCnt = scriptData[2]
                 paramList = []
                 for i in range(paramCnt):
-                    paramList.append(scriptData[4+i])
+                    paramList.append(scriptData[4 + i])
                 data = data + tuple(paramList)
-                frame.tree.insert(parent='', index='end', iid=index ,values=data)
+                frame.tree.insert(parent='', index='end', iid=index, values=data)
                 index += 1
                 sectionNum += 1
             listNum += 1
             sectionNum = 0
         num += 1
     return index
+
 
 def editLine():
     global decryptFile
@@ -714,6 +612,7 @@ def editLine():
     if result.reloadFlag:
         reloadFile()
 
+
 def insertLine():
     global decryptFile
     global frame
@@ -722,6 +621,7 @@ def insertLine():
     result = InputDialog(root, "コマンド挿入", decryptFile, cmdList, int(selectItem["番号"]), selectItem["セクション"])
     if result.reloadFlag:
         reloadFile()
+
 
 def deleteLine():
     global decryptFile
@@ -742,6 +642,7 @@ def deleteLine():
         mb.showinfo(title="成功", message="スクリプトを改造しました")
         reloadFile()
 
+
 def copyLine():
     global frame
     global copyScriptData
@@ -750,19 +651,20 @@ def copyLine():
     selectItem = frame.tree.set(selectId)
     scriptData.append(int(selectItem["index"]))
     scriptData.append(cmdList.index(selectItem["コマンド名"]))
-    paramCnt = len(selectItem)-5
+    paramCnt = len(selectItem) - 5
     scriptData.append(paramCnt)
     scriptData.append(int(selectItem["ファイルフラグ"]))
     for i in range(paramCnt):
         try:
-            temp = float(selectItem["param{0}".format(i+1)])
-        except:
-            temp = selectItem["param{0}".format(i+1)]
+            temp = float(selectItem["param{0}".format(i + 1)])
+        except Exception:
+            temp = selectItem["param{0}".format(i + 1)]
         scriptData.append(temp)
     copyScriptData = copy.deepcopy(scriptData)
 
     mb.showinfo(title="成功", message="コピーしました")
     pasteLineBtn['state'] = 'normal'
+
 
 def pasteLine():
     global decryptFile
@@ -775,13 +677,15 @@ def pasteLine():
     if result.reloadFlag:
         reloadFile()
 
+
 def headerFileEditBtn():
     global decryptFile
     global frame
     result = HeaderDialog(root, "ヘッダー情報", decryptFile)
     if result.reloadFlag:
         reloadFile()
-    
+
+
 def reloadFile():
     global decryptFile
     global frame
@@ -808,6 +712,7 @@ def reloadFile():
             print(traceback.format_exc())
             mb.showerror(title="エラー", message=errorMsg)
 
+
 def listNumModifyBtn():
     global decryptFile
     global frame
@@ -821,6 +726,7 @@ def listNumModifyBtn():
     if result.reloadFlag:
         reloadFile()
 
+
 def listHeadeModifyBtn():
     global decryptFile
     global frame
@@ -830,10 +736,11 @@ def listHeadeModifyBtn():
     num = arr[0].strip("-").strip("#")
     listNum = arr[1].strip("-").strip("#")
     headerInfo = [int(n) for n in selectItem["param1"].split(",")]
-    
+
     result = ListHeaderModifyDialog(root, "セクションの内容変更", decryptFile, int(num), int(listNum), headerInfo)
     if result.reloadFlag:
         reloadFile()
+
 
 def numModifyBtn():
     global decryptFile
@@ -844,23 +751,24 @@ def numModifyBtn():
     if result.reloadFlag:
         reloadFile()
 
-root = Tk()
+
+root = tkinter.Tk()
 root.title("電車でD モデルバイナリ 改造 1.1.2")
 root.geometry("960x640")
 
-menubar = Menu(root)
-menubar.add_cascade(label='ファイルを開く', command= lambda: openFile())
+menubar = tkinter.Menu(root)
+menubar.add_cascade(label='ファイルを開く', command=lambda: openFile())
 root.config(menu=menubar)
 
-v_fileName = StringVar()
-fileNameEt = ttk.Entry(root, textvariable=v_fileName, font=("",14), width=20, state="readonly", justify="center")
+v_fileName = tkinter.StringVar()
+fileNameEt = ttk.Entry(root, textvariable=v_fileName, font=("", 14), width=20, state="readonly", justify="center")
 fileNameEt.place(relx=0.053, rely=0.03)
 
-selectLb = ttk.Label(text="選択した行番号：", font=("",14))
+selectLb = ttk.Label(text="選択した行番号：", font=("", 14))
 selectLb.place(relx=0.05, rely=0.11)
 
-v_select = StringVar()
-selectEt = ttk.Entry(root, textvariable=v_select, font=("",14), width=5, state="readonly", justify="center")
+v_select = tkinter.StringVar()
+selectEt = ttk.Entry(root, textvariable=v_select, font=("", 14), width=5, state="readonly", justify="center")
 selectEt.place(relx=0.22, rely=0.11)
 
 editLineBtn = ttk.Button(root, text="選択した行を修正する", width=25, state="disabled", command=editLine)

@@ -1,10 +1,10 @@
 import copy
 
-from tkinter import *
-from tkinter import font
+import tkinter
 from tkinter import ttk
 from tkinter import simpledialog as sd
 from tkinter import messagebox as mb
+
 
 class InputDialog(sd.Dialog):
     def __init__(self, master, title, decryptFile, cmdList, num, section, cmdItem=None):
@@ -16,66 +16,67 @@ class InputDialog(sd.Dialog):
         self.cmdItem = cmdItem
         self.section = section
         self.reloadFlag = False
-        if self.cmdItem != None:
+        if self.cmdItem is not None:
             self.mode = "edit"
             self.info = "このまま修正してもよろしいですか？"
             self.p_cmd = self.cmdItem["コマンド名"]
-            self.p_cnt = len(self.cmdItem)-5
+            self.p_cnt = len(self.cmdItem) - 5
         else:
             self.mode = "insert"
             self.info = "このまま挿入してもよろしいですか？"
             self.p_cmd = None
             self.p_cnt = None
         super(InputDialog, self).__init__(parent=master, title=title)
+
     def body(self, master):
         self.resizable(False, False)
         self.idxLb = ttk.Label(master, text="index", width=12, font=("", 14))
-        self.idxLb.grid(row=0, column=0, sticky=N+S)
-        self.v_idx = StringVar()
-        if self.cmdItem != None:
+        self.idxLb.grid(row=0, column=0, sticky=tkinter.N + tkinter.S)
+        self.v_idx = tkinter.StringVar()
+        if self.cmdItem is not None:
             self.v_idx.set(self.cmdItem["index"])
         else:
             self.v_idx.set(0)
         self.idxEt = ttk.Entry(master, textvariable=self.v_idx, width=33)
-        self.idxEt.grid(row=0, column=1, sticky=N+S, pady=10)
-        
+        self.idxEt.grid(row=0, column=1, sticky=tkinter.N + tkinter.S, pady=10)
+
         self.cmdLb = ttk.Label(master, text="コマンド名", width=12, font=("", 14))
-        self.cmdLb.grid(row=1, column=0, sticky=N+S)
-        self.v_cmd = StringVar()
+        self.cmdLb.grid(row=1, column=0, sticky=tkinter.N + tkinter.S)
+        self.v_cmd = tkinter.StringVar()
         cmdCopy = copy.deepcopy(self.cmdList)
         cmdCopy.sort()
         self.cmdCb = ttk.Combobox(master, textvariable=self.v_cmd, width=30, state="readonly", value=cmdCopy)
-        self.cmdCb.grid(row=1, column=1, sticky=N+S, pady=10)
-        if self.p_cmd != None:
+        self.cmdCb.grid(row=1, column=1, sticky=tkinter.N + tkinter.S, pady=10)
+        if self.p_cmd is not None:
             self.v_cmd.set(self.p_cmd)
         else:
             self.v_cmd.set(cmdCopy[0])
 
         self.paramCntLb = ttk.Label(master, text="パラメータ数", width=12, font=("", 14))
-        self.paramCntLb.grid(row=2, column=0, sticky=N+S)
-        self.v_paramCnt = IntVar()
+        self.paramCntLb.grid(row=2, column=0, sticky=tkinter.N + tkinter.S)
+        self.v_paramCnt = tkinter.IntVar()
         paramCntList = [cnt for cnt in range(0, 16)]
         self.paramCntCb = ttk.Combobox(master, textvariable=self.v_paramCnt, width=30, state="readonly", value=paramCntList)
-        self.paramCntCb.grid(row=2, column=1, sticky=N+S, pady=10)
-        if self.p_cnt != None:
+        self.paramCntCb.grid(row=2, column=1, sticky=tkinter.N + tkinter.S, pady=10)
+        if self.p_cnt is not None:
             self.v_paramCnt.set(self.p_cnt)
         else:
             self.v_paramCnt.set(0)
 
-        if self.cmdItem == None:
+        if self.cmdItem is None:
             self.position = ttk.Label(master, text="挿入する位置", width=12, font=("", 14))
-            self.position.grid(row=3, column=0, sticky=N+S)
-            self.v_position = StringVar()
+            self.position.grid(row=3, column=0, sticky=tkinter.N + tkinter.S)
+            self.v_position = tkinter.StringVar()
             positionList = ["後", "前"]
             self.positionCb = ttk.Combobox(master, textvariable=self.v_position, width=30, state="readonly", value=positionList)
-            self.positionCb.grid(row=3, column=1, sticky=N+S, pady=10)
+            self.positionCb.grid(row=3, column=1, sticky=tkinter.N + tkinter.S, pady=10)
             self.v_position.set(positionList[0])
 
-        self.xLine = ttk.Separator(master, orient=HORIZONTAL)
-        self.xLine.grid(columnspan=2, row=4, column=0, sticky=E+W, pady=10)
+        self.xLine = ttk.Separator(master, orient=tkinter.HORIZONTAL)
+        self.xLine.grid(columnspan=2, row=4, column=0, sticky=tkinter.E + tkinter.W, pady=10)
 
         self.paramFrame = ttk.Frame(master)
-        self.paramFrame.grid(columnspan=2, row=5, column=0, sticky=N+E+W+S)
+        self.paramFrame.grid(columnspan=2, row=5, column=0, sticky=tkinter.N + tkinter.E + tkinter.W + tkinter.S)
 
         self.paramLb = ttk.Label(self.paramFrame)
         self.paramLb.grid(row=0, column=0)
@@ -83,7 +84,7 @@ class InputDialog(sd.Dialog):
         if self.ver == 2:
             self.cmdCb.bind('<<ComboboxSelected>>', lambda e: self.cmdLock())
             self.cmdLock()
-            
+
         self.paramCntCb.bind('<<ComboboxSelected>>', lambda e: self.selectParam(self.v_paramCnt.get(), self.paramFrame))
         if self.p_cnt != 0:
             self.selectParam(self.v_paramCnt.get(), self.paramFrame, self.cmdItem)
@@ -99,15 +100,15 @@ class InputDialog(sd.Dialog):
             self.paramLb.grid(row=0, column=0)
 
         for i in range(paramCnt):
-            self.paramLb = ttk.Label(frame, text="param{0}".format(i+1), font=("", 14))
-            self.paramLb.grid(row=i, column=0, sticky=N+S)
-            v_param = StringVar()
+            self.paramLb = ttk.Label(frame, text="param{0}".format(i + 1), font=("", 14))
+            self.paramLb.grid(row=i, column=0, sticky=tkinter.N + tkinter.S)
+            v_param = tkinter.StringVar()
             self.v_paramList.append(v_param)
             self.paramEt = ttk.Entry(frame, textvariable=v_param, width=30)
-            self.paramEt.grid(row=i, column=1, sticky=N+S)
-        if cmdItem != None:
+            self.paramEt.grid(row=i, column=1, sticky=tkinter.N + tkinter.S)
+        if cmdItem is not None:
             for i in range(len(self.v_paramList)):
-                self.v_paramList[i].set(cmdItem["param{0}".format(i+1)])
+                self.v_paramList[i].set(cmdItem["param{0}".format(i + 1)])
 
     def cmdLock(self):
         if self.ver == 2:
@@ -129,7 +130,7 @@ class InputDialog(sd.Dialog):
             if floatFlag:
                 try:
                     num = float(var.get())
-                except:
+                except Exception:
                     floatFlag = False
                     if self.ver < 3:
                         if self.ver == 2:
@@ -159,7 +160,7 @@ class InputDialog(sd.Dialog):
         msg = ""
         infoMsg = self.info
         for param in textParamList:
-            msg += "param{0}\n".format(param+1)
+            msg += "param{0}\n".format(param + 1)
 
         if len(textParamList) > 0:
             msg += "※上記のparamは文字として保存されます\n\n"
@@ -175,7 +176,7 @@ class InputDialog(sd.Dialog):
                 scriptData.append(0xFF)
             else:
                 scriptData.append(len(textParamList))
-                
+
             for i in range(self.v_paramCnt.get()):
                 scriptData.append(editParamList[i])
 
@@ -194,9 +195,11 @@ class InputDialog(sd.Dialog):
                 mb.showerror(title="保存エラー", message=errorMsg)
                 return False
             return True
+
     def apply(self):
         mb.showinfo(title="成功", message="スクリプトを改造しました")
         self.reloadFlag = True
+
 
 class PasteDialog(sd.Dialog):
     def __init__(self, master, title, decryptFile, cmdList, num, section, copyScriptData):
@@ -207,19 +210,22 @@ class PasteDialog(sd.Dialog):
         self.copyScriptData = copyScriptData
         self.reloadFlag = False
         super(PasteDialog, self).__init__(parent=master, title=title)
+
     def body(self, master):
         self.resizable(False, False)
         self.posLb = ttk.Label(master, text="挿入する位置を選んでください", font=("", 14))
         self.posLb.pack(padx=10, pady=10)
+
     def buttonbox(self):
-        box = Frame(self, padx=5, pady=5)
-        self.frontBtn = Button(box, text="前", font=("", 12), width=10, command=self.frontInsert)
+        box = tkinter.Frame(self, padx=5, pady=5)
+        self.frontBtn = tkinter.Button(box, text="前", font=("", 12), width=10, command=self.frontInsert)
         self.frontBtn.grid(row=0, column=0, padx=5)
-        self.backBtn = Button(box, text="後", font=("", 12), width=10, command=self.backInsert)
+        self.backBtn = tkinter.Button(box, text="後", font=("", 12), width=10, command=self.backInsert)
         self.backBtn.grid(row=0, column=1, padx=5)
-        self.cancelBtn = Button(box, text="Cancel", font=("", 12), width=10, command=self.cancel)
+        self.cancelBtn = tkinter.Button(box, text="Cancel", font=("", 12), width=10, command=self.cancel)
         self.cancelBtn.grid(row=0, column=2, padx=5)
         box.pack()
+
     def frontInsert(self):
         self.ok()
         sectionList = self.section.split(",")
@@ -233,20 +239,21 @@ class PasteDialog(sd.Dialog):
             return
         mb.showinfo(title="成功", message="スクリプトを改造しました")
         self.reloadFlag = True
-                
+
     def backInsert(self):
         self.ok()
         sectionList = self.section.split(",")
         num = int(sectionList[0])
         listNum = int(sectionList[1])
         cmdDiff = int(sectionList[2])
-        if not self.decryptFile.saveFile(num, listNum, cmdDiff+1, "insert", self.copyScriptData):
+        if not self.decryptFile.saveFile(num, listNum, cmdDiff + 1, "insert", self.copyScriptData):
             self.decryptFile.printError()
             errorMsg = "保存に失敗しました。\nファイルが他のプログラムによって開かれている\nまたは権限問題の可能性があります"
             mb.showerror(title="保存エラー", message=errorMsg)
             return
         mb.showinfo(title="成功", message="スクリプトを改造しました")
         self.reloadFlag = True
+
 
 class HeaderDialog(sd.Dialog):
     def __init__(self, master, title, decryptFile):
@@ -262,73 +269,74 @@ class HeaderDialog(sd.Dialog):
         self.wavList = copy.deepcopy(self.decryptFile.wavList)
         self.tgaList = copy.deepcopy(self.decryptFile.tgaList)
         super(HeaderDialog, self).__init__(parent=master, title=title)
+
     def body(self, master):
         self.resizable(False, False)
-        self.btnFrame = Frame(master, pady=5)
+        self.btnFrame = tkinter.Frame(master, pady=5)
         self.btnFrame.pack()
-        self.listFrame = Frame(master)
+        self.listFrame = tkinter.Frame(master)
         self.listFrame.pack()
 
-        self.modifyBtn = Button(self.btnFrame, font=("", 14), text="修正", state="disabled", command=self.modify)
-        self.modifyBtn.grid(padx=10, row=0, column=0, sticky=W+E)
-        self.insertBtn = Button(self.btnFrame, font=("", 14), text="挿入", state="disabled", command=self.insert)
-        self.insertBtn.grid(padx=10, row=0, column=1, sticky=W+E)
-        self.deleteBtn = Button(self.btnFrame, font=("", 14), text="削除", state="disabled", command=self.delete)
-        self.deleteBtn.grid(padx=10, row=0, column=2, sticky=W+E)
+        self.modifyBtn = tkinter.Button(self.btnFrame, font=("", 14), text="修正", state="disabled", command=self.modify)
+        self.modifyBtn.grid(padx=10, row=0, column=0, sticky=tkinter.W + tkinter.E)
+        self.insertBtn = tkinter.Button(self.btnFrame, font=("", 14), text="挿入", state="disabled", command=self.insert)
+        self.insertBtn.grid(padx=10, row=0, column=1, sticky=tkinter.W + tkinter.E)
+        self.deleteBtn = tkinter.Button(self.btnFrame, font=("", 14), text="削除", state="disabled", command=self.delete)
+        self.deleteBtn.grid(padx=10, row=0, column=2, sticky=tkinter.W + tkinter.E)
         ###
-        self.imgListLb = Label(self.listFrame, font=("", 14), text="画像情報")
-        self.imgListLb.grid(row=0, column=0, sticky=W+E)
+        self.imgListLb = tkinter.Label(self.listFrame, font=("", 14), text="画像情報")
+        self.imgListLb.grid(row=0, column=0, sticky=tkinter.W + tkinter.E)
 
         copyImgList = self.setListboxInfo(0, self.imgList)
-        self.v_imgList = StringVar(value=copyImgList)
-        self.imgListListbox = Listbox(self.listFrame, selectmode="single", font=("", 14), width=30, listvariable=self.v_imgList)
-        self.imgListListbox.grid(row=1, column=0, sticky=W+E)
-        self.imgListListbox.bind("<<ListboxSelect>>", lambda e:self.buttonActive(0, self.imgListListbox, self.imgListListbox.curselection()))
+        self.v_imgList = tkinter.StringVar(value=copyImgList)
+        self.imgListListbox = tkinter.Listbox(self.listFrame, selectmode="single", font=("", 14), width=30, listvariable=self.v_imgList)
+        self.imgListListbox.grid(row=1, column=0, sticky=tkinter.W + tkinter.E)
+        self.imgListListbox.bind("<<ListboxSelect>>", lambda e: self.buttonActive(e, 0, self.imgListListbox, self.imgListListbox.curselection()))
         ###
-        self.padLb = Label(self.listFrame, width=3)
-        self.padLb.grid(row=0, column=1, sticky=W+E)
+        self.padLb = tkinter.Label(self.listFrame, width=3)
+        self.padLb.grid(row=0, column=1, sticky=tkinter.W + tkinter.E)
         ###
-        self.imgSizeListLb = Label(self.listFrame, font=("", 14), text="画像サイズ情報")
-        self.imgSizeListLb.grid(row=0, column=2, sticky=W+E)
+        self.imgSizeListLb = tkinter.Label(self.listFrame, font=("", 14), text="画像サイズ情報")
+        self.imgSizeListLb.grid(row=0, column=2, sticky=tkinter.W + tkinter.E)
 
         copyImgSizeList = self.setListboxInfo(1, self.imgSizeList)
-        self.v_imgSize = StringVar(value=copyImgSizeList)
-        self.imgSizeListbox = Listbox(self.listFrame, selectmode="single", font=("", 14), width=30, listvariable=self.v_imgSize)
-        self.imgSizeListbox.grid(row=1, column=2, sticky=W+E)
-        self.imgSizeListbox.bind('<<ListboxSelect>>', lambda e:self.buttonActive(1, self.imgSizeListbox, self.imgSizeListbox.curselection()))
+        self.v_imgSize = tkinter.StringVar(value=copyImgSizeList)
+        self.imgSizeListbox = tkinter.Listbox(self.listFrame, selectmode="single", font=("", 14), width=30, listvariable=self.v_imgSize)
+        self.imgSizeListbox.grid(row=1, column=2, sticky=tkinter.W + tkinter.E)
+        self.imgSizeListbox.bind('<<ListboxSelect>>', lambda e: self.buttonActive(e, 1, self.imgSizeListbox, self.imgSizeListbox.curselection()))
         ###
-        self.smfListLb = Label(self.listFrame, font=("", 14), text="smf情報")
-        self.smfListLb.grid(row=2, column=0, sticky=W+E)
+        self.smfListLb = tkinter.Label(self.listFrame, font=("", 14), text="smf情報")
+        self.smfListLb.grid(row=2, column=0, sticky=tkinter.W + tkinter.E)
 
         copySmfList = self.setListboxInfo(2, self.smfList)
-        self.v_smfList = StringVar(value=copySmfList)
-        self.smfListListbox = Listbox(self.listFrame, selectmode="single", font=("", 14), width=30, listvariable=self.v_smfList)
-        self.smfListListbox.grid(row=3, column=0, sticky=W+E)
-        self.smfListListbox.bind('<<ListboxSelect>>', lambda e:self.buttonActive(2, self.smfListListbox, self.smfListListbox.curselection()))
+        self.v_smfList = tkinter.StringVar(value=copySmfList)
+        self.smfListListbox = tkinter.Listbox(self.listFrame, selectmode="single", font=("", 14), width=30, listvariable=self.v_smfList)
+        self.smfListListbox.grid(row=3, column=0, sticky=tkinter.W + tkinter.E)
+        self.smfListListbox.bind('<<ListboxSelect>>', lambda e: self.buttonActive(e, 2, self.smfListListbox, self.smfListListbox.curselection()))
         ###
-        self.padLb = Label(self.listFrame, width=3)
-        self.padLb.grid(row=2, column=1, sticky=W+E)
+        self.padLb = tkinter.Label(self.listFrame, width=3)
+        self.padLb.grid(row=2, column=1, sticky=tkinter.W + tkinter.E)
         ###
-        self.wavListLb = Label(self.listFrame, font=("", 14), text="SE情報")
-        self.wavListLb.grid(row=2, column=2, sticky=W+E)
-        
+        self.wavListLb = tkinter.Label(self.listFrame, font=("", 14), text="SE情報")
+        self.wavListLb.grid(row=2, column=2, sticky=tkinter.W + tkinter.E)
+
         copyWavList = self.setListboxInfo(3, self.wavList)
-        self.v_wavList = StringVar(value=copyWavList)
-        self.wavListListbox = Listbox(self.listFrame, selectmode="single", font=("", 14), width=30, listvariable=self.v_wavList)
-        self.wavListListbox.grid(row=3, column=2, sticky=W+E)
-        self.wavListListbox.bind('<<ListboxSelect>>', lambda e:self.buttonActive(3, self.wavListListbox, self.wavListListbox.curselection()))
+        self.v_wavList = tkinter.StringVar(value=copyWavList)
+        self.wavListListbox = tkinter.Listbox(self.listFrame, selectmode="single", font=("", 14), width=30, listvariable=self.v_wavList)
+        self.wavListListbox.grid(row=3, column=2, sticky=tkinter.W + tkinter.E)
+        self.wavListListbox.bind('<<ListboxSelect>>', lambda e: self.buttonActive(e, 3, self.wavListListbox, self.wavListListbox.curselection()))
         ###
         if self.decryptFile.ver != 1:
-            self.tgaListLb = Label(self.listFrame, font=("", 14), text="tga情報")
-            self.tgaListLb.grid(row=4, column=0, columnspan=3 ,sticky=W+E)
-        
+            self.tgaListLb = tkinter.Label(self.listFrame, font=("", 14), text="tga情報")
+            self.tgaListLb.grid(row=4, column=0, columnspan=3, sticky=tkinter.W + tkinter.E)
+
             copyTgaList = self.setListboxInfo(4, self.tgaList)
-            self.v_tgaList = StringVar(value=copyTgaList)
-            self.tgaListListbox = Listbox(self.listFrame, selectmode="single", font=("", 14), listvariable=self.v_tgaList)
-            self.tgaListListbox.grid(row=5, column=0, columnspan=3, sticky=W+E)
-            self.tgaListListbox.bind('<<ListboxSelect>>', lambda e:self.buttonActive(4, self.tgaListListbox, self.tgaListListbox.curselection()))
-        
-    def buttonActive(self, num, listbox, value):
+            self.v_tgaList = tkinter.StringVar(value=copyTgaList)
+            self.tgaListListbox = tkinter.Listbox(self.listFrame, selectmode="single", font=("", 14), listvariable=self.v_tgaList)
+            self.tgaListListbox.grid(row=5, column=0, columnspan=3, sticky=tkinter.W + tkinter.E)
+            self.tgaListListbox.bind('<<ListboxSelect>>', lambda e: self.buttonActive(e, 4, self.tgaListListbox, self.tgaListListbox.curselection()))
+
+    def buttonActive(self, event, num, listbox, value):
         if len(value) == 0:
             return
         self.selectListNum = num
@@ -397,7 +405,7 @@ class HeaderDialog(sd.Dialog):
                 copyTgaList = ["(なし)"]
 
             return copyTgaList
-        
+
     def modify(self):
         selectList = None
         if self.selectListNum == 0:
@@ -428,7 +436,7 @@ class HeaderDialog(sd.Dialog):
             elif self.selectListNum == 4:
                 copyTgaList = self.setListboxInfo(4, self.tgaList)
                 self.v_tgaList.set(copyTgaList)
-        
+
     def insert(self):
         selectList = None
         if self.selectListNum == 0:
@@ -459,7 +467,7 @@ class HeaderDialog(sd.Dialog):
             elif self.selectListNum == 4:
                 copyTgaList = self.setListboxInfo(4, self.tgaList)
                 self.v_tgaList.set(copyTgaList)
-        
+
     def delete(self):
         msg = ""
         if self.selectListNum == 0:
@@ -512,6 +520,7 @@ class HeaderDialog(sd.Dialog):
                 if len(self.tgaList) == 0:
                     self.modifyBtn["state"] = "disabled"
                     self.deleteBtn["state"] = "disabled"
+
     def validate(self):
         if self.dirtyFlag:
             result = mb.askokcancel(title="警告", message="変更を保存しますか？", icon="warning", parent=self)
@@ -529,7 +538,8 @@ class HeaderDialog(sd.Dialog):
         if self.dirtyFlag:
             mb.showinfo(title="成功", message="ヘッダー情報を改造しました")
             self.reloadFlag = True
-                
+
+
 class HeaderEditDialog(sd.Dialog):
     def __init__(self, master, title, ver, mode, selectListNum, selectIndexNum, selectList):
         self.ver = ver
@@ -539,28 +549,29 @@ class HeaderEditDialog(sd.Dialog):
         self.selectList = selectList
         self.dirtyFlag = False
         super(HeaderEditDialog, self).__init__(parent=master, title=title)
+
     def body(self, master):
         if self.selectListNum == 0:
             self.imgNameLb = ttk.Label(master, text="イメージ名", font=("", 12))
-            self.imgNameLb.grid(row=0, column=0, sticky=W+E)   
-            self.v_imgName = StringVar()
+            self.imgNameLb.grid(row=0, column=0, sticky=tkinter.W + tkinter.E)
+            self.v_imgName = tkinter.StringVar()
             self.imgNameEt = ttk.Entry(master, font=("", 12), textvariable=self.v_imgName)
-            self.imgNameEt.grid(row=0, column=1, sticky=W+E)
+            self.imgNameEt.grid(row=0, column=1, sticky=tkinter.W + tkinter.E)
 
             if self.ver == 4:
                 self.imgElse1Lb = ttk.Label(master, text="要素1", font=("", 12))
-                self.imgElse1Lb.grid(row=1, column=0, sticky=W+E)   
-                self.v_imgElse1 = StringVar()
+                self.imgElse1Lb.grid(row=1, column=0, sticky=tkinter.W + tkinter.E)
+                self.v_imgElse1 = tkinter.StringVar()
                 self.imgElseCb = ttk.Combobox(master, state="readonly", font=("", 12), textvariable=self.v_imgElse1, values=[0, 1])
-                self.imgElseCb.grid(row=1, column=1, sticky=W+E)
+                self.imgElseCb.grid(row=1, column=1, sticky=tkinter.W + tkinter.E)
                 self.imgElseCb.current(0)
                 self.imgElseCb.bind("<<ComboboxSelected>>", self.imgElseCbChange)
 
                 self.imgElse2Lb = ttk.Label(master, text="要素2", font=("", 12))
-                self.imgElse2Lb.grid(row=2, column=0, sticky=W+E)   
-                self.v_imgElse2 = StringVar()
+                self.imgElse2Lb.grid(row=2, column=0, sticky=tkinter.W + tkinter.E)
+                self.v_imgElse2 = tkinter.StringVar()
                 self.imgElseEt = ttk.Entry(master, font=("", 12), textvariable=self.v_imgElse2, state="disabled")
-                self.imgElseEt.grid(row=2, column=1, sticky=W+E)
+                self.imgElseEt.grid(row=2, column=1, sticky=tkinter.W + tkinter.E)
 
             if self.mode == "modify":
                 self.v_imgName.set(self.selectList[self.selectIndexNum]["imgName"])
@@ -591,12 +602,12 @@ class HeaderEditDialog(sd.Dialog):
             self.imgIndex_widthLb.grid(row=4, column=0)
             self.imgIndex_heightLb = ttk.Label(master, text="縦長さ", font=("", 12))
             self.imgIndex_heightLb.grid(row=5, column=0)
-            
-            self.v_imgIndex = IntVar()
-            self.v_imgIndex_x = DoubleVar()
-            self.v_imgIndex_y = DoubleVar()
-            self.v_imgIndex_width = DoubleVar()
-            self.v_imgIndex_height = DoubleVar()
+
+            self.v_imgIndex = tkinter.IntVar()
+            self.v_imgIndex_x = tkinter.DoubleVar()
+            self.v_imgIndex_y = tkinter.DoubleVar()
+            self.v_imgIndex_width = tkinter.DoubleVar()
+            self.v_imgIndex_height = tkinter.DoubleVar()
             self.imgIndexEt = ttk.Entry(master, textvariable=self.v_imgIndex, font=("", 12))
             self.imgIndexEt.grid(row=1, column=1)
             self.imgIndex_xEt = ttk.Entry(master, textvariable=self.v_imgIndex_x, font=("", 12))
@@ -618,10 +629,10 @@ class HeaderEditDialog(sd.Dialog):
                 self.setInsertWidget(master, 6)
         elif self.selectListNum == 2:
             self.smfNameLb = ttk.Label(master, text="smfファイル名", font=("", 12))
-            self.smfNameLb.grid(row=0, column=0, sticky=W+E)
-            self.v_smfName = StringVar()
+            self.smfNameLb.grid(row=0, column=0, sticky=tkinter.W + tkinter.E)
+            self.v_smfName = tkinter.StringVar()
             self.smfNameEt = ttk.Entry(master, font=("", 12), textvariable=self.v_smfName)
-            self.smfNameEt.grid(row=0, column=1, sticky=W+E)
+            self.smfNameEt.grid(row=0, column=1, sticky=tkinter.W + tkinter.E)
 
             if self.mode == "modify":
                 self.v_smfName.set(self.selectList[self.selectIndexNum])
@@ -629,16 +640,16 @@ class HeaderEditDialog(sd.Dialog):
                 self.setInsertWidget(master, 1)
         elif self.selectListNum == 3:
             self.wavNameLb = ttk.Label(master, text="SEファイル名", font=("", 12))
-            self.wavNameLb.grid(row=0, column=0, sticky=W+E)
-            self.v_wavName = StringVar()
+            self.wavNameLb.grid(row=0, column=0, sticky=tkinter.W + tkinter.E)
+            self.v_wavName = tkinter.StringVar()
             self.wavNameEt = ttk.Entry(master, font=("", 12), textvariable=self.v_wavName)
-            self.wavNameEt.grid(row=0, column=1, sticky=W+E)
+            self.wavNameEt.grid(row=0, column=1, sticky=tkinter.W + tkinter.E)
 
             self.wavCntLb = ttk.Label(master, text="グループ取得数", font=("", 12))
-            self.wavCntLb.grid(row=1, column=0, sticky=W+E)   
-            self.v_wavCnt = IntVar()
+            self.wavCntLb.grid(row=1, column=0, sticky=tkinter.W + tkinter.E)
+            self.v_wavCnt = tkinter.IntVar()
             self.wavCntEt = ttk.Entry(master, font=("", 12), textvariable=self.v_wavCnt)
-            self.wavCntEt.grid(row=1, column=1, sticky=W+E)
+            self.wavCntEt.grid(row=1, column=1, sticky=tkinter.W + tkinter.E)
 
             if self.mode == "modify":
                 self.v_wavName.set(self.selectList[self.selectIndexNum][0])
@@ -647,61 +658,61 @@ class HeaderEditDialog(sd.Dialog):
                 self.setInsertWidget(master, 2)
         elif self.selectListNum == 4:
             self.tgaName1Lb = ttk.Label(master, text="TGAファイル名1", font=("", 12))
-            self.tgaName1Lb.grid(row=0, column=0, sticky=W+E)
-            self.v_tgaName1 = StringVar()
+            self.tgaName1Lb.grid(row=0, column=0, sticky=tkinter.W + tkinter.E)
+            self.v_tgaName1 = tkinter.StringVar()
             self.tgaName1Et = ttk.Entry(master, font=("", 12), textvariable=self.v_tgaName1)
-            self.tgaName1Et.grid(row=0, column=1, sticky=W+E)
+            self.tgaName1Et.grid(row=0, column=1, sticky=tkinter.W + tkinter.E)
 
             self.tgaName2Lb = ttk.Label(master, text="TGAファイル名2", font=("", 12))
-            self.tgaName2Lb.grid(row=1, column=0, sticky=W+E)
-            self.v_tgaName2 = StringVar()
+            self.tgaName2Lb.grid(row=1, column=0, sticky=tkinter.W + tkinter.E)
+            self.v_tgaName2 = tkinter.StringVar()
             self.tgaName2Et = ttk.Entry(master, font=("", 12), textvariable=self.v_tgaName2)
-            self.tgaName2Et.grid(row=1, column=1, sticky=W+E)
+            self.tgaName2Et.grid(row=1, column=1, sticky=tkinter.W + tkinter.E)
 
             self.tgaEle1Lb = ttk.Label(master, text="要素1", font=("", 12))
-            self.tgaEle1Lb.grid(row=2, column=0, sticky=W+E)   
-            self.v_tgaEle1 = DoubleVar()
+            self.tgaEle1Lb.grid(row=2, column=0, sticky=tkinter.W + tkinter.E)
+            self.v_tgaEle1 = tkinter.DoubleVar()
             self.tgaEle1Et = ttk.Entry(master, font=("", 12), textvariable=self.v_tgaEle1)
-            self.tgaEle1Et.grid(row=2, column=1, sticky=W+E)
-            
-            self.tgaEle2Lb = ttk.Label(master, text="要素2", font=("", 12))
-            self.tgaEle2Lb.grid(row=3, column=0, sticky=W+E)   
-            self.v_tgaEle2 = DoubleVar()
-            self.tgaEle2Et = ttk.Entry(master, font=("", 12), textvariable=self.v_tgaEle2)
-            self.tgaEle2Et.grid(row=3, column=1, sticky=W+E)
+            self.tgaEle1Et.grid(row=2, column=1, sticky=tkinter.W + tkinter.E)
 
-            self.xLine = ttk.Separator(master, orient=HORIZONTAL)
-            self.xLine.grid(row=4, column=0, columnspan=2, sticky=E+W, pady=10)
+            self.tgaEle2Lb = ttk.Label(master, text="要素2", font=("", 12))
+            self.tgaEle2Lb.grid(row=3, column=0, sticky=tkinter.W + tkinter.E)
+            self.v_tgaEle2 = tkinter.DoubleVar()
+            self.tgaEle2Et = ttk.Entry(master, font=("", 12), textvariable=self.v_tgaEle2)
+            self.tgaEle2Et.grid(row=3, column=1, sticky=tkinter.W + tkinter.E)
+
+            self.xLine = ttk.Separator(master, orient=tkinter.HORIZONTAL)
+            self.xLine.grid(row=4, column=0, columnspan=2, sticky=tkinter.W + tkinter.E, pady=10)
 
             self.tgaElseB1Lb = ttk.Label(master, text="B1", font=("", 12))
-            self.tgaElseB1Lb.grid(row=5, column=0, sticky=W+E)   
-            self.v_tgaElseB1 = IntVar()
+            self.tgaElseB1Lb.grid(row=5, column=0, sticky=tkinter.W + tkinter.E)
+            self.v_tgaElseB1 = tkinter.IntVar()
             self.tgaElseB1Et = ttk.Entry(master, font=("", 12), textvariable=self.v_tgaElseB1)
-            self.tgaElseB1Et.grid(row=5, column=1, sticky=W+E)
-            
+            self.tgaElseB1Et.grid(row=5, column=1, sticky=tkinter.W + tkinter.E)
+
             self.tgaElseB2Lb = ttk.Label(master, text="B2", font=("", 12))
-            self.tgaElseB2Lb.grid(row=6, column=0, sticky=W+E)   
-            self.v_tgaElseB2 = IntVar()
+            self.tgaElseB2Lb.grid(row=6, column=0, sticky=tkinter.W + tkinter.E)
+            self.v_tgaElseB2 = tkinter.IntVar()
             self.tgaElseB2Et = ttk.Entry(master, font=("", 12), textvariable=self.v_tgaElseB2)
-            self.tgaElseB2Et.grid(row=6, column=1, sticky=W+E)
+            self.tgaElseB2Et.grid(row=6, column=1, sticky=tkinter.W + tkinter.E)
 
             self.tgaElseB3Lb = ttk.Label(master, text="B3", font=("", 12))
-            self.tgaElseB3Lb.grid(row=7, column=0, sticky=W+E)   
-            self.v_tgaElseB3 = IntVar()
+            self.tgaElseB3Lb.grid(row=7, column=0, sticky=tkinter.W + tkinter.E)
+            self.v_tgaElseB3 = tkinter.IntVar()
             self.tgaElseB3Et = ttk.Entry(master, font=("", 12), textvariable=self.v_tgaElseB3)
-            self.tgaElseB3Et.grid(row=7, column=1, sticky=W+E)
+            self.tgaElseB3Et.grid(row=7, column=1, sticky=tkinter.W + tkinter.E)
 
             self.tgaElseB4Lb = ttk.Label(master, text="B4", font=("", 12))
-            self.tgaElseB4Lb.grid(row=8, column=0, sticky=W+E)   
-            self.v_tgaElseB4 = IntVar()
+            self.tgaElseB4Lb.grid(row=8, column=0, sticky=tkinter.W + tkinter.E)
+            self.v_tgaElseB4 = tkinter.IntVar()
             self.tgaElseB4Et = ttk.Entry(master, font=("", 12), textvariable=self.v_tgaElseB4)
-            self.tgaElseB4Et.grid(row=8, column=1, sticky=W+E)
+            self.tgaElseB4Et.grid(row=8, column=1, sticky=tkinter.W + tkinter.E)
 
             self.tgaElsePerLb = ttk.Label(master, text="per", font=("", 12))
-            self.tgaElsePerLb.grid(row=9, column=0, sticky=W+E)   
-            self.v_tgaElsePer = IntVar()
+            self.tgaElsePerLb.grid(row=9, column=0, sticky=tkinter.W + tkinter.E)
+            self.v_tgaElsePer = tkinter.IntVar()
             self.tgaElsePerEt = ttk.Entry(master, font=("", 12), textvariable=self.v_tgaElsePer)
-            self.tgaElsePerEt.grid(row=9, column=1, sticky=W+E)
+            self.tgaElsePerEt.grid(row=9, column=1, sticky=tkinter.W + tkinter.E)
 
             if self.mode == "modify":
                 self.v_tgaName1.set(self.selectList[self.selectIndexNum]["tgaInfo"][0])
@@ -717,16 +728,16 @@ class HeaderEditDialog(sd.Dialog):
                 self.setInsertWidget(master, 10)
 
     def setInsertWidget(self, master, index):
-        self.xLine = ttk.Separator(master, orient=HORIZONTAL)
-        self.xLine.grid(row=index, column=0, columnspan=2, sticky=E+W, pady=10)
+        self.xLine = ttk.Separator(master, orient=tkinter.HORIZONTAL)
+        self.xLine.grid(row=index, column=0, columnspan=2, sticky=tkinter.W + tkinter.E, pady=10)
 
         self.insertLb = ttk.Label(master, text="挿入する位置", font=("", 12))
-        self.insertLb.grid(row=index+1, column=0, sticky=W+E)
-        self.v_insert = StringVar()
+        self.insertLb.grid(row=index + 1, column=0, sticky=tkinter.W + tkinter.E)
+        self.v_insert = tkinter.StringVar()
         self.insertCb = ttk.Combobox(master, state="readonly", font=("", 12), textvariable=self.v_insert, values=["後", "前"])
-        self.insertCb.grid(row=index+1, column=1, sticky=W+E)
+        self.insertCb.grid(row=index + 1, column=1, sticky=tkinter.W + tkinter.E)
         self.insertCb.current(0)
-        
+
     def imgElseCbChange(self, event):
         imgElse1 = self.imgElseCb.current()
         if imgElse1 == 0:
@@ -764,7 +775,7 @@ class HeaderEditDialog(sd.Dialog):
                         else:
                             self.selectList.insert(self.selectIndexNum, imgInfo)
                     return True
-                except:
+                except Exception:
                     mb.showerror(title="エラー", message="不正な値があります")
                     return False
             elif self.selectListNum == 1:
@@ -788,13 +799,13 @@ class HeaderEditDialog(sd.Dialog):
                         else:
                             self.selectList.insert(self.selectIndexNum, imgSizeInfo)
                     return True
-                except:
+                except Exception:
                     mb.showerror(title="エラー", message="不正な値があります")
                     return False
             elif self.selectListNum == 2:
                 try:
                     smfName = self.v_smfName.get()
-                    
+
                     if self.mode == "modify":
                         self.selectList[self.selectIndexNum] = smfName
                     else:
@@ -804,7 +815,7 @@ class HeaderEditDialog(sd.Dialog):
                         else:
                             self.selectList.insert(self.selectIndexNum, smfName)
                     return True
-                except:
+                except Exception:
                     mb.showerror(title="エラー", message="不正な値があります")
                     return False
             elif self.selectListNum == 3:
@@ -815,7 +826,7 @@ class HeaderEditDialog(sd.Dialog):
                     wavInfo.append(wavName)
                     wavCnt = int(self.v_wavCnt.get())
                     wavInfo.append(wavCnt)
-                    
+
                     if self.mode == "modify":
                         self.selectList[self.selectIndexNum] = wavInfo
                     else:
@@ -825,7 +836,7 @@ class HeaderEditDialog(sd.Dialog):
                         else:
                             self.selectList.insert(self.selectIndexNum, wavInfo)
                     return True
-                except:
+                except Exception:
                     mb.showerror(title="エラー", message="不正な値があります")
                     return False
             elif self.selectListNum == 4:
@@ -843,7 +854,7 @@ class HeaderEditDialog(sd.Dialog):
                     tgaInfo["tgaElse"].append(int(self.v_tgaElseB3.get()))
                     tgaInfo["tgaElse"].append(int(self.v_tgaElseB4.get()))
                     tgaInfo["tgaElse"].append(int(self.v_tgaElsePer.get()))
-                    
+
                     if self.mode == "modify":
                         self.selectList[self.selectIndexNum] = tgaInfo
                     else:
@@ -853,12 +864,13 @@ class HeaderEditDialog(sd.Dialog):
                         else:
                             self.selectList.insert(self.selectIndexNum, tgaInfo)
                     return True
-                except:
+                except Exception:
                     mb.showerror(title="エラー", message="不正な値があります")
                     return False
 
     def apply(self):
         self.dirtyFlag = True
+
 
 class ListNumModifyDialog(sd.Dialog):
     def __init__(self, master, title, decryptFile, num, curVal):
@@ -867,18 +879,20 @@ class ListNumModifyDialog(sd.Dialog):
         self.curVal = curVal
         self.reloadFlag = False
         super(ListNumModifyDialog, self).__init__(parent=master, title=title)
+
     def body(self, master):
         self.resizable(False, False)
         self.listLb = ttk.Label(master, text="セクション{0}の数を".format(self.num), font=("", 14))
         self.listLb.grid(row=0, column=0)
 
-        self.v_listNum = IntVar()
+        self.v_listNum = tkinter.IntVar()
         self.v_listNum.set(self.curVal)
         self.sp = ttk.Spinbox(master, textvariable=self.v_listNum, font=("", 12), from_=1, to=100, width=5)
         self.sp.grid(row=0, column=1, padx=10)
 
         self.list2Lb = ttk.Label(master, text="に修正する", font=("", 14))
         self.list2Lb.grid(row=0, column=2)
+
     def validate(self):
         if self.v_listNum.get() < self.curVal:
             warnMsg = "選択した数は現在より少なく設定してます\nこの数で修正しますか？"
@@ -886,7 +900,7 @@ class ListNumModifyDialog(sd.Dialog):
         else:
             infoMsg = "この数で修正しますか？"
             result = mb.askokcancel(title="確認", message=infoMsg, parent=self)
-            
+
         if result:
             if not self.decryptFile.saveFile(int(self.num), 0, -1, "list", self.v_listNum.get()):
                 self.decryptFile.printError()
@@ -894,9 +908,11 @@ class ListNumModifyDialog(sd.Dialog):
                 mb.showerror(title="保存エラー", message=errorMsg)
                 return False
             return True
+
     def apply(self):
         mb.showinfo(title="成功", message="セクションの数を改造しました")
         self.reloadFlag = True
+
 
 class ListHeaderModifyDialog(sd.Dialog):
     def __init__(self, master, title, decryptFile, num, listNum, headerInfo):
@@ -907,15 +923,16 @@ class ListHeaderModifyDialog(sd.Dialog):
         self.v_paramList = []
         self.reloadFlag = False
         super(ListHeaderModifyDialog, self).__init__(parent=master, title=title)
+
     def body(self, master):
         for i in range(3):
-            self.paramLb = ttk.Label(master, text="param{0}".format(i+1), font=("", 14))
-            self.paramLb.grid(row=i, column=0, sticky=N+S)
-            self.v_param = IntVar()
+            self.paramLb = ttk.Label(master, text="param{0}".format(i + 1), font=("", 14))
+            self.paramLb.grid(row=i, column=0, sticky=tkinter.N + tkinter.S)
+            self.v_param = tkinter.IntVar()
             self.v_param.set(self.headerInfo[i])
             self.v_paramList.append(self.v_param)
             self.paramEt = ttk.Entry(master, textvariable=self.v_param, width=30)
-            self.paramEt.grid(row=i, column=1, sticky=N+S)
+            self.paramEt.grid(row=i, column=1, sticky=tkinter.N + tkinter.S)
 
     def validate(self):
         headerList = []
@@ -935,7 +952,7 @@ class ListHeaderModifyDialog(sd.Dialog):
                     mb.showerror(title="保存エラー", message=errorMsg)
                     return False
                 return True
-        except:
+        except Exception:
             mb.showerror(title="エラー", message="不正な値があります")
             return False
 
@@ -943,24 +960,27 @@ class ListHeaderModifyDialog(sd.Dialog):
         mb.showinfo(title="成功", message="リストの数を改造しました")
         self.reloadFlag = True
 
+
 class NumModifyDialog(sd.Dialog):
     def __init__(self, master, title, decryptFile, curVal):
         self.decryptFile = decryptFile
         self.curVal = curVal
         self.reloadFlag = False
         super(NumModifyDialog, self).__init__(parent=master, title=title)
+
     def body(self, master):
         self.resizable(False, False)
         self.numLb = ttk.Label(master, text="リストの数を", font=("", 14))
         self.numLb.grid(row=0, column=0)
 
-        self.v_num = IntVar()
+        self.v_num = tkinter.IntVar()
         self.v_num.set(self.curVal)
         self.sp = ttk.Spinbox(master, textvariable=self.v_num, font=("", 12), from_=1, to=100, width=5)
         self.sp.grid(row=0, column=1, padx=10)
 
         self.num2Lb = ttk.Label(master, text="に修正する", font=("", 14))
         self.num2Lb.grid(row=0, column=2)
+
     def validate(self):
         if self.v_num.get() < self.curVal:
             warnMsg = "選択した数は現在より少なく設定してます\nこの数で修正しますか？"
@@ -968,7 +988,7 @@ class NumModifyDialog(sd.Dialog):
         else:
             infoMsg = "この数で修正しますか？"
             result = mb.askokcancel(title="確認", message=infoMsg, parent=self)
-            
+
         if result:
             if not self.decryptFile.saveNumFile(self.v_num.get()):
                 self.decryptFile.printError()
@@ -976,6 +996,7 @@ class NumModifyDialog(sd.Dialog):
                 mb.showerror(title="保存エラー", message=errorMsg)
                 return False
             return True
+
     def apply(self):
         mb.showinfo(title="成功", message="リストの数を改造しました")
         self.reloadFlag = True

@@ -1,6 +1,6 @@
 import struct
-import copy
 import traceback
+
 
 class MdlBinDecrypt:
     def __init__(self, filePath, cmdList):
@@ -20,6 +20,7 @@ class MdlBinDecrypt:
 
         self.indexInfoList = []
         self.scriptDataAllInfoList = []
+
     def open(self):
         try:
             f = open(self.filePath, "rb")
@@ -28,14 +29,15 @@ class MdlBinDecrypt:
             self.decrypt()
             self.readScript()
             return True
-        except Exception as e:
+        except Exception:
             self.error = traceback.format_exc()
             return False
+
     def printError(self):
         f = open("error_log.txt", "w")
         f.write(self.error)
         f.close()
-        
+
     def decrypt(self):
         self.ver = self.byteArr[0]
         self.index = 1
@@ -47,7 +49,7 @@ class MdlBinDecrypt:
             imgInfo = {}
             imgNameLen = self.byteArr[self.index]
             self.index += 1
-            imgName = self.byteArr[self.index:self.index+imgNameLen].decode("shift-jis")
+            imgName = self.byteArr[self.index:self.index + imgNameLen].decode("shift-jis")
             imgInfo["imgName"] = imgName
             self.index += imgNameLen
             imgInfo["imgElse"] = []
@@ -56,7 +58,7 @@ class MdlBinDecrypt:
                 imgInfo["imgElse"].append(tmp)
                 self.index += 1
                 if tmp != 0:
-                    h = struct.unpack("<h", self.byteArr[self.index:self.index+2])[0]
+                    h = struct.unpack("<h", self.byteArr[self.index:self.index + 2])[0]
                     imgInfo["imgElse"].append(h)
                     self.index += 2
             self.imgList.append(imgInfo)
@@ -73,7 +75,7 @@ class MdlBinDecrypt:
 
             imgSize = []
             for i in range(4):
-                size = struct.unpack("<f", self.byteArr[self.index:self.index+4])[0]
+                size = struct.unpack("<f", self.byteArr[self.index:self.index + 4])[0]
                 imgSize.append(size)
                 self.index += 4
             imgSizeInfo.append(imgSize)
@@ -86,7 +88,7 @@ class MdlBinDecrypt:
         for i in range(smfCnt):
             smfLen = self.byteArr[self.index]
             self.index += 1
-            smfName = self.byteArr[self.index:self.index+smfLen].decode("shift-jis")
+            smfName = self.byteArr[self.index:self.index + smfLen].decode("shift-jis")
             self.smfList.append(smfName)
             self.index += smfLen
 
@@ -96,7 +98,7 @@ class MdlBinDecrypt:
             wavInfo = []
             wavLen = self.byteArr[self.index]
             self.index += 1
-            wavName = self.byteArr[self.index:self.index+wavLen].decode("shift-jis")
+            wavName = self.byteArr[self.index:self.index + wavLen].decode("shift-jis")
             wavInfo.append(wavName)
             self.index += wavLen
             wavInfo.append(self.byteArr[self.index])
@@ -112,12 +114,12 @@ class MdlBinDecrypt:
                 for j in range(2):
                     lightTgaLen = self.byteArr[self.index]
                     self.index += 1
-                    lightTgaName = self.byteArr[self.index:self.index+lightTgaLen].decode("shift-jis")
+                    lightTgaName = self.byteArr[self.index:self.index + lightTgaLen].decode("shift-jis")
                     tgaInfo["tgaInfo"].append(lightTgaName)
                     self.index += lightTgaLen
 
                 for i in range(2):
-                    tempF = struct.unpack("<f", self.byteArr[self.index:self.index+4])[0]
+                    tempF = struct.unpack("<f", self.byteArr[self.index:self.index + 4])[0]
                     tgaInfo["tgaInfo"].append(tempF)
                     self.index += 4
 
@@ -125,8 +127,8 @@ class MdlBinDecrypt:
                 for i in range(4):
                     tgaInfo["tgaElse"].append(self.byteArr[self.index])
                     self.index += 1
-                
-                h = struct.unpack("<h", self.byteArr[self.index:self.index+2])[0]
+
+                h = struct.unpack("<h", self.byteArr[self.index:self.index + 2])[0]
                 tgaInfo["tgaElse"].append(h)
                 self.index += 2
 
@@ -150,34 +152,34 @@ class MdlBinDecrypt:
                 indexInfo.append(self.index)
                 scriptDataInfo = self.nextSection()
                 scriptDataInfoList.append(scriptDataInfo)
-                
+
             self.indexInfoList.append(indexInfo)
             self.scriptDataAllInfoList.append(scriptDataInfoList)
 
-    def nextSection(self, cmdDiff = None):
+    def nextSection(self, cmdDiff=None):
         scriptDataInfo = []
         headerInfo = []
         for i in range(3):
-            h = struct.unpack("<h", self.byteArr[self.index:self.index+2])[0]
+            h = struct.unpack("<h", self.byteArr[self.index:self.index + 2])[0]
             headerInfo.append(h)
             self.index += 2
         scriptDataInfo.append(headerInfo)
-            
+
         cmdcnt = self.byteArr[self.index]
         self.index += 1
-        if cmdDiff != None:
+        if cmdDiff is not None:
             cmdcnt = cmdDiff
-            
+
         for i in range(cmdcnt):
             scriptData = []
-            idx = struct.unpack("<h", self.byteArr[self.index:self.index+2])[0]
+            idx = struct.unpack("<h", self.byteArr[self.index:self.index + 2])[0]
             self.index += 2
             scriptData.append(idx)
 
-            cmdNum = struct.unpack("<h", self.byteArr[self.index:self.index+2])[0]
+            cmdNum = struct.unpack("<h", self.byteArr[self.index:self.index + 2])[0]
             self.index += 2
             scriptData.append(cmdNum)
-            
+
             paraCnt = self.byteArr[self.index]
             if self.max_param < paraCnt:
                 self.max_param = paraCnt
@@ -197,16 +199,16 @@ class MdlBinDecrypt:
                 paraCnt -= fileCnt
 
             for j in range(paraCnt):
-                temp = struct.unpack("<f", self.byteArr[self.index:self.index+4])[0]
+                temp = struct.unpack("<f", self.byteArr[self.index:self.index + 4])[0]
                 temp = round(temp, 5)
-                self.index += 4 
+                self.index += 4
                 scriptData.append(temp)
 
             if fileCnt != 0xFF:
                 for j in range(fileCnt):
                     txtLen = self.byteArr[self.index]
                     self.index += 1
-                    temp = self.byteArr[self.index:self.index+txtLen].decode("shift-jis")
+                    temp = self.byteArr[self.index:self.index + txtLen].decode("shift-jis")
                     self.index += txtLen
                     scriptData.append(temp)
 
@@ -273,13 +275,13 @@ class MdlBinDecrypt:
         except Exception:
             self.error = traceback.format_exc()
             return False
-    
-    def saveFile(self, num, listNum, cmdDiff, mode, scriptData = None):
+
+    def saveFile(self, num, listNum, cmdDiff, mode, scriptData=None):
         try:
             self.index = self.indexInfoList[num][listNum]
 
             if mode == "list":
-                listIdx = self.index-1
+                listIdx = self.index - 1
                 listcnt = self.byteArr[listIdx]
                 self.byteArr[listIdx] = scriptData
 
@@ -288,13 +290,13 @@ class MdlBinDecrypt:
                         break
 
                     self.nextSection()
-                    
+
                 newByteArr = self.byteArr[0:self.index]
                 if scriptData < listcnt:
-                    for i in range(listcnt-scriptData):
+                    for i in range(listcnt - scriptData):
                         self.nextSection()
                 else:
-                    for i in range(scriptData-listcnt):
+                    for i in range(scriptData - listcnt):
                         newByteArr.extend([1, 0, 0, 0, 1, 0])
                         newByteArr.append(0)
 
@@ -336,19 +338,19 @@ class MdlBinDecrypt:
                         temp = 0
                         if floatFlag:
                             try:
-                                temp = float(scriptData[4+i])
-                            except:
+                                temp = float(scriptData[4 + i])
+                            except Exception:
                                 floatFlag = False
 
                         if self.ver == 2:
                             if self.cmdList[scriptData[1]] in ["MDL_GETINDEX", "SET_LENSFLEAR_MT"] and i == 1:
                                 floatFlag = False
-                            
+
                         if floatFlag:
                             bTemp = struct.pack("<f", temp)
                             newByteArr.extend(bTemp)
                         else:
-                            temp = scriptData[4+i].encode("shift-jis")
+                            temp = scriptData[4 + i].encode("shift-jis")
                             newByteArr.append(len(temp))
                             newByteArr.extend(temp)
 
@@ -357,7 +359,7 @@ class MdlBinDecrypt:
                     self.nextSection(cmdDiff)
                 elif mode == "insert":
                     self.nextSection(cmdDiff - 1)
-                    
+
                 newByteArr.extend(self.byteArr[self.index:])
 
             self.byteArr = newByteArr
@@ -387,7 +389,7 @@ class MdlBinDecrypt:
             curNum = len(self.indexInfoList)
             self.byteArr[self.index] = num
             if num > curNum:
-                for i in range(num-curNum):
+                for i in range(num - curNum):
                     self.byteArr.append(1)
 
                     self.byteArr.extend([1, 0, 0, 0, 1, 0])
