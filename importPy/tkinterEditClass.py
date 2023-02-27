@@ -30,14 +30,14 @@ class InputDialog(sd.Dialog):
 
     def body(self, master):
         self.resizable(False, False)
-        self.idxLb = ttk.Label(master, text="index", width=12, font=("", 14))
+        self.idxLb = ttk.Label(master, text="delay", width=12, font=("", 14))
         self.idxLb.grid(row=0, column=0, sticky=tkinter.N + tkinter.S)
-        self.v_idx = tkinter.StringVar()
+        self.v_delay = tkinter.StringVar()
         if self.cmdItem is not None:
-            self.v_idx.set(self.cmdItem["index"])
+            self.v_delay.set(self.cmdItem["delay"])
         else:
-            self.v_idx.set(0)
-        self.idxEt = ttk.Entry(master, textvariable=self.v_idx, width=33)
+            self.v_delay.set(0)
+        self.idxEt = ttk.Entry(master, textvariable=self.v_delay, width=33)
         self.idxEt.grid(row=0, column=1, sticky=tkinter.N + tkinter.S, pady=10)
 
         self.cmdLb = ttk.Label(master, text="コマンド名", width=12, font=("", 14))
@@ -169,7 +169,7 @@ class InputDialog(sd.Dialog):
         result = mb.askokcancel(title="確認", message=infoMsg, parent=self)
         if result:
             scriptData = []
-            scriptData.append(int(self.v_idx.get()))
+            scriptData.append(int(self.v_delay.get()))
             scriptData.append(self.cmdList.index(self.v_cmd.get()))
             scriptData.append(self.v_paramCnt.get())
             if len(textParamList) == 0:
@@ -271,11 +271,13 @@ class HeaderDialog(sd.Dialog):
         super(HeaderDialog, self).__init__(parent=master, title=title)
 
     def body(self, master):
-        self.resizable(False, False)
+        self.resizable(True, True)
         self.btnFrame = tkinter.Frame(master, pady=5)
         self.btnFrame.pack()
         self.listFrame = tkinter.Frame(master)
         self.listFrame.pack()
+
+        listHeight = 8
 
         self.modifyBtn = tkinter.Button(self.btnFrame, font=("", 14), text="修正", state="disabled", command=self.modify)
         self.modifyBtn.grid(padx=10, row=0, column=0, sticky=tkinter.W + tkinter.E)
@@ -289,7 +291,7 @@ class HeaderDialog(sd.Dialog):
 
         copyImgList = self.setListboxInfo(0, self.imgList)
         self.v_imgList = tkinter.StringVar(value=copyImgList)
-        self.imgListListbox = tkinter.Listbox(self.listFrame, selectmode="single", font=("", 14), width=30, listvariable=self.v_imgList)
+        self.imgListListbox = tkinter.Listbox(self.listFrame, selectmode="single", font=("", 14), width=30, height=listHeight, listvariable=self.v_imgList)
         self.imgListListbox.grid(row=1, column=0, sticky=tkinter.W + tkinter.E)
         self.imgListListbox.bind("<<ListboxSelect>>", lambda e: self.buttonActive(e, 0, self.imgListListbox, self.imgListListbox.curselection()))
         ###
@@ -301,7 +303,7 @@ class HeaderDialog(sd.Dialog):
 
         copyImgSizeList = self.setListboxInfo(1, self.imgSizeList)
         self.v_imgSize = tkinter.StringVar(value=copyImgSizeList)
-        self.imgSizeListbox = tkinter.Listbox(self.listFrame, selectmode="single", font=("", 14), width=30, listvariable=self.v_imgSize)
+        self.imgSizeListbox = tkinter.Listbox(self.listFrame, selectmode="single", font=("", 14), width=30, height=listHeight, listvariable=self.v_imgSize)
         self.imgSizeListbox.grid(row=1, column=2, sticky=tkinter.W + tkinter.E)
         self.imgSizeListbox.bind('<<ListboxSelect>>', lambda e: self.buttonActive(e, 1, self.imgSizeListbox, self.imgSizeListbox.curselection()))
         ###
@@ -310,7 +312,7 @@ class HeaderDialog(sd.Dialog):
 
         copySmfList = self.setListboxInfo(2, self.smfList)
         self.v_smfList = tkinter.StringVar(value=copySmfList)
-        self.smfListListbox = tkinter.Listbox(self.listFrame, selectmode="single", font=("", 14), width=30, listvariable=self.v_smfList)
+        self.smfListListbox = tkinter.Listbox(self.listFrame, selectmode="single", font=("", 14), width=30, height=listHeight, listvariable=self.v_smfList)
         self.smfListListbox.grid(row=3, column=0, sticky=tkinter.W + tkinter.E)
         self.smfListListbox.bind('<<ListboxSelect>>', lambda e: self.buttonActive(e, 2, self.smfListListbox, self.smfListListbox.curselection()))
         ###
@@ -322,7 +324,7 @@ class HeaderDialog(sd.Dialog):
 
         copyWavList = self.setListboxInfo(3, self.wavList)
         self.v_wavList = tkinter.StringVar(value=copyWavList)
-        self.wavListListbox = tkinter.Listbox(self.listFrame, selectmode="single", font=("", 14), width=30, listvariable=self.v_wavList)
+        self.wavListListbox = tkinter.Listbox(self.listFrame, selectmode="single", font=("", 14), width=30, height=listHeight, listvariable=self.v_wavList)
         self.wavListListbox.grid(row=3, column=2, sticky=tkinter.W + tkinter.E)
         self.wavListListbox.bind('<<ListboxSelect>>', lambda e: self.buttonActive(e, 3, self.wavListListbox, self.wavListListbox.curselection()))
         ###
@@ -332,7 +334,7 @@ class HeaderDialog(sd.Dialog):
 
             copyTgaList = self.setListboxInfo(4, self.tgaList)
             self.v_tgaList = tkinter.StringVar(value=copyTgaList)
-            self.tgaListListbox = tkinter.Listbox(self.listFrame, selectmode="single", font=("", 14), listvariable=self.v_tgaList)
+            self.tgaListListbox = tkinter.Listbox(self.listFrame, selectmode="single", font=("", 14), height=listHeight, listvariable=self.v_tgaList)
             self.tgaListListbox.grid(row=5, column=0, columnspan=3, sticky=tkinter.W + tkinter.E)
             self.tgaListListbox.bind('<<ListboxSelect>>', lambda e: self.buttonActive(e, 4, self.tgaListListbox, self.tgaListListbox.curselection()))
 

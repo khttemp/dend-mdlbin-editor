@@ -403,6 +403,80 @@ class MdlBinDecrypt:
             self.error = traceback.format_exc()
             return False
 
+    def saveCsv(self, csvScriptDataAllInfoList):
+        try:
+            index = self.allListIndex
+            newByteArr = self.byteArr[0:index]
+
+            allListCnt = len(csvScriptDataAllInfoList)
+            newByteArr.append(allListCnt)
+
+            for csvScriptDataInfoList in csvScriptDataAllInfoList:
+                listCnt = len(csvScriptDataInfoList)
+                newByteArr.append(listCnt)
+
+                for csvScriptDataInfo in csvScriptDataInfoList:
+                    headerInfo = csvScriptDataInfo[0]
+                    for header in headerInfo:
+                        h = struct.pack("<h", int(header))
+                        newByteArr.extend(h)
+
+                    cmdCnt = len(csvScriptDataInfo[1])
+                    newByteArr.append(cmdCnt)
+                    for csvScriptData in csvScriptDataInfo[1]:
+                        delay = int(csvScriptData[0])
+                        delayH = struct.pack("<h", delay)
+                        newByteArr.extend(delayH)
+
+                        cmdName = csvScriptData[1]
+                        cmdIdx = self.cmdList.index(cmdName)
+                        cmdIdxH = struct.pack("<h", cmdIdx)
+                        newByteArr.extend(cmdIdxH)
+
+                        csvAllParamList = csvScriptData[2:]
+                        allParamList = []
+                        for param in csvAllParamList:
+                            if param == "":
+                                continue
+                            allParamList.append(param)
+
+                        allParamCnt = len(allParamList)
+                        floatCnt = 0
+                        paramByteList = []
+                        floatFlag = True
+                        for i in range(allParamCnt):
+                            if floatFlag:
+                                try:
+                                    tempF = struct.pack("<f", float(csvScriptData[2 + i]))
+                                    floatCnt += 1
+                                    paramByteList.append(tempF)
+                                except Exception:
+                                    floatFlag = False
+                                    tempS = csvScriptData[2 + i].encode("shift-jis")
+                                    paramByteList.append(struct.pack("<b", len(tempS)))
+                                    paramByteList.append(tempS)
+                            else:
+                                tempS = csvScriptData[2 + i].encode("shift-jis")
+                                paramByteList.append(struct.pack("<b", len(tempS)))
+                                paramByteList.append(tempS)
+
+                        stringCnt = allParamCnt - floatCnt
+                        if stringCnt == 0:
+                            stringCnt = 0xFF
+
+                        newByteArr.append(allParamCnt)
+                        if self.ver >= 3:
+                            newByteArr.append(stringCnt)
+
+                        for paramByte in paramByteList:
+                            newByteArr.extend(paramByte)
+            self.byteArr = newByteArr
+            self.save()
+            return True
+        except Exception:
+            self.error = traceback.format_exc()
+            return False
+
     def save(self):
         w = open(self.filePath, "wb")
         w.write(self.byteArr)

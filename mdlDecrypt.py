@@ -543,9 +543,11 @@ def createWidget():
         numModifyBtn
     ]
     headerFileEditBtn['state'] = 'normal'
+    csvExtractBtn['state'] = 'normal'
+    csvLoadAndSaveBtn['state'] = 'normal'
     frame = ScrollbarFrame(scriptLf, v_select, btnList)
 
-    col_tuple = ('番号', 'index', 'コマンド名', 'ファイルフラグ', 'セクション')
+    col_tuple = ('番号', 'delay', 'コマンド名', 'ファイルフラグ', 'セクション')
     paramList = []
     for i in range(decryptFile.max_param):
         paramList.append("param{0}".format(i + 1))
@@ -555,7 +557,7 @@ def createWidget():
 
     frame.tree.column('#0', width=0, stretch=False)
     frame.tree.column('番号', anchor=tkinter.CENTER, width=50)
-    frame.tree.column('index', anchor=tkinter.CENTER, width=50)
+    frame.tree.column('delay', anchor=tkinter.CENTER, width=50)
     frame.tree.column('コマンド名', anchor=tkinter.CENTER, width=130)
     frame.tree.column('ファイルフラグ', width=20, stretch=False)
     frame.tree.column('セクション', stretch=False)
@@ -566,14 +568,14 @@ def createWidget():
     displayList = []
 
     frame.tree.heading('番号', text='番号', anchor=tkinter.CENTER)
-    frame.tree.heading('index', text='index', anchor=tkinter.CENTER)
+    frame.tree.heading('delay', text='delay', anchor=tkinter.CENTER)
     frame.tree.heading('コマンド名', text='コマンド名', anchor=tkinter.CENTER)
     for i in range(decryptFile.max_param):
         col_name = "param{0}".format(i + 1)
         displayList.append(col_name)
         frame.tree.heading(col_name, text=col_name, anchor=tkinter.CENTER)
 
-    frame.tree["displaycolumns"] = ["番号", "index", "コマンド名"]
+    frame.tree["displaycolumns"] = ["番号", "delay", "コマンド名"]
     frame.tree["displaycolumns"] += tuple(displayList)
 
     index = 0
@@ -649,7 +651,7 @@ def copyLine():
     scriptData = []
     selectId = frame.tree.selection()[0]
     selectItem = frame.tree.set(selectId)
-    scriptData.append(int(selectItem["index"]))
+    scriptData.append(int(selectItem["delay"]))
     scriptData.append(cmdList.index(selectItem["コマンド名"]))
     paramCnt = len(selectItem) - 5
     scriptData.append(paramCnt)
@@ -697,16 +699,20 @@ def reloadFile():
                 mb.showerror(title="エラー", message=errorMsg)
                 return
 
+            selectId = -1
             if v_select.get() != "":
                 selectId = int(v_select.get())
-                deleteWidget()
-                maxIndex = createWidget()
-                if selectId >= maxIndex:
-                    selectId = maxIndex - 1
-                if selectId - 3 < 0:
-                    frame.tree.see(0)
-                else:
-                    frame.tree.see(selectId - 3)
+            deleteWidget()
+            maxIndex = createWidget()
+            if selectId >= maxIndex:
+                selectId = maxIndex - 1
+
+            if selectId - 3 < 0:
+                frame.tree.see(0)
+            else:
+                frame.tree.see(selectId - 3)
+
+            if selectId >= 0:
                 frame.tree.selection_set(selectId)
         except Exception:
             print(traceback.format_exc())
@@ -752,8 +758,106 @@ def numModifyBtn():
         reloadFile()
 
 
+def csvExtractBtn():
+    global decryptFile
+    file = v_fileName.get()
+    filename = os.path.splitext(os.path.basename(file))[0]
+    file_path = fd.asksaveasfilename(initialfile=filename, defaultextension='csv', filetypes=[('mdlbin_csv', '*.csv')])
+    errorMsg = "CSVで取り出す機能が失敗しました。\n権限問題の可能性があります。"
+    if file_path:
+        try:
+            w = open(file_path, "w")
+            num = 0
+            for scriptDataInfoList in decryptFile.scriptDataAllInfoList:
+                listNum = 0
+                for scriptDataInfo in scriptDataInfoList:
+                    headerInfo = "#{0}-{1},".format(num, listNum)
+                    headerInfo += ",".join(str(n) for n in scriptDataInfo[0])
+                    headerInfo += "\n"
+                    w.write(headerInfo)
+                    for scriptData in scriptDataInfo[1:]:
+                        data = "{0},{1},".format(scriptData[0], cmdList[scriptData[1]])
+                        paramCnt = scriptData[2]
+                        paramList = []
+                        for i in range(paramCnt):
+                            paramList.append(scriptData[4 + i])
+                        data += ",".join(str(p) for p in paramList)
+                        data += "\n"
+                        w.write(data)
+                    listNum += 1
+                num += 1
+            w.close()
+            mb.showinfo(title="成功", message="CSVで取り出しました")
+        except Exception:
+            print(traceback.format_exc())
+            mb.showerror(title="エラー", message=errorMsg)
+
+
+def csvLoadAndSaveBtn():
+    global decryptFile
+    file_path = fd.askopenfilename(defaultextension='csv', filetypes=[("mdlbin_csv", "*.csv")])
+    if not file_path:
+        return
+    f = open(file_path)
+    csvLines = f.readlines()
+    f.close()
+
+    csvScriptDataAllInfoList = []
+    csvScriptDataInfoList = []
+    csvScriptDataInfo = []
+    csvScriptData = []
+    curNum = -1
+    curListNum = -1
+    for i in range(len(csvLines)):
+        try:
+            csvLine = csvLines[i].strip()
+            arr = csvLine.split(",")
+
+            if "#" in arr[0]:
+                section = arr[0].strip("#").split("-")
+                num = int(section[0])
+                listNum = int(section[1])
+
+                if curNum != num:
+                    curNum = num
+                    curListNum = listNum
+                    csvScriptDataInfoList = []
+                    csvScriptDataAllInfoList.append(csvScriptDataInfoList)
+                    csvScriptDataInfo = []
+                    csvScriptDataInfoList.append(csvScriptDataInfo)
+                elif curListNum != listNum:
+                    curListNum = listNum
+                    csvScriptDataInfo = []
+                    csvScriptDataInfoList.append(csvScriptDataInfo)
+                csvScriptDataInfo.append(arr[1:])
+                csvScriptData = []
+                csvScriptDataInfo.append(csvScriptData)
+            else:
+                cmdName = arr[1]
+                if cmdName not in cmdList:
+                    errorMsg = "{0}行のコマンドは存在しません [{1}]".format(i + 1, cmdName)
+                    mb.showerror(title="読み込みエラー", message=errorMsg)
+                    return
+                csvScriptData.append(arr)
+        except Exception:
+            errorMsg = "{0}行のデータを読み込み失敗しました。".format(i + 1)
+            mb.showerror(title="読み込みエラー", message=errorMsg)
+            return
+
+    msg = "{0}行のデータを読み込みしました。\n上書きしますか？".format(i + 1)
+    result = mb.askokcancel(title="警告", message=msg, icon="warning")
+
+    if result:
+        if not decryptFile.saveCsv(csvScriptDataAllInfoList):
+            decryptFile.printError()
+            errorMsg = "保存に失敗しました。\nファイルが他のプログラムによって開かれている\nまたは権限問題の可能性があります"
+            mb.showerror(title="保存エラー", message=errorMsg)
+            return
+        mb.showinfo(title="成功", message="CSVで上書きしました")
+        reloadFile()
+
 root = tkinter.Tk()
-root.title("電車でD モデルバイナリ 改造 1.1.2")
+root.title("電車でD モデルバイナリ 改造 1.2.0")
 root.geometry("960x640")
 
 menubar = tkinter.Menu(root)
@@ -781,22 +885,28 @@ deleteLineBtn = ttk.Button(root, text="選択した行を削除する", width=25
 deleteLineBtn.place(relx=0.76, rely=0.03)
 
 copyLineBtn = ttk.Button(root, text="選択した行をコピーする", width=25, state="disabled", command=copyLine)
-copyLineBtn.place(relx=0.32, rely=0.11)
+copyLineBtn.place(relx=0.32, rely=0.09)
 
 pasteLineBtn = ttk.Button(root, text="選択した行に貼り付けする", width=25, state="disabled", command=pasteLine)
-pasteLineBtn.place(relx=0.54, rely=0.11)
+pasteLineBtn.place(relx=0.54, rely=0.09)
 
 headerFileEditBtn = ttk.Button(root, text="ヘッダー情報を修正する", width=25, state="disabled", command=headerFileEditBtn)
-headerFileEditBtn.place(relx=0.76, rely=0.11)
+headerFileEditBtn.place(relx=0.76, rely=0.09)
 
 listNumModifyBtn = ttk.Button(root, text="セクションの数を修正する", width=25, state="disabled", command=listNumModifyBtn)
-listNumModifyBtn.place(relx=0.32, rely=0.19)
+listNumModifyBtn.place(relx=0.32, rely=0.15)
 
 listHeadeModifyBtn = ttk.Button(root, text="セクションの内容を修正する", width=25, state="disabled", command=listHeadeModifyBtn)
-listHeadeModifyBtn.place(relx=0.54, rely=0.19)
+listHeadeModifyBtn.place(relx=0.54, rely=0.15)
 
 numModifyBtn = ttk.Button(root, text="リストの数を修正する", width=25, state="disabled", command=numModifyBtn)
-numModifyBtn.place(relx=0.76, rely=0.19)
+numModifyBtn.place(relx=0.76, rely=0.15)
+
+csvExtractBtn = ttk.Button(root, text="CSVで取り出す", width=25, state="disabled", command=csvExtractBtn)
+csvExtractBtn.place(relx=0.32, rely=0.21)
+
+csvLoadAndSaveBtn = ttk.Button(root, text="CSVで上書きする", width=25, state="disabled", command=csvLoadAndSaveBtn)
+csvLoadAndSaveBtn.place(relx=0.54, rely=0.21)
 
 scriptLf = ttk.LabelFrame(root, text="スクリプト内容")
 scriptLf.place(relx=0.05, rely=0.25, relwidth=0.9, relheight=0.70)
