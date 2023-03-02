@@ -416,8 +416,11 @@ class MdlBinDecrypt:
                 newByteArr.append(listCnt)
 
                 for csvScriptDataInfo in csvScriptDataInfoList:
+                    print(csvScriptDataInfo)
                     headerInfo = csvScriptDataInfo[0]
                     for header in headerInfo:
+                        if header == "":
+                            continue
                         h = struct.pack("<h", int(header))
                         newByteArr.extend(h)
 

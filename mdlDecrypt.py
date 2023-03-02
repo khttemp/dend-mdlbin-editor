@@ -857,7 +857,7 @@ def csvLoadAndSaveBtn():
         reloadFile()
 
 root = tkinter.Tk()
-root.title("電車でD モデルバイナリ 改造 1.2.0")
+root.title("電車でD モデルバイナリ 改造 1.2.1")
 root.geometry("960x640")
 
 menubar = tkinter.Menu(root)
